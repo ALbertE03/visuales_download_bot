@@ -1,0 +1,16 @@
+[project]
+name = "visuales-uclv"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "bs4>=0.0.2",
+    "pyrogram>=2.0.106",
+    "python-dotenv>=1.2.2",
+    "python-telegram-bot>=22.7",
+    "requests>=2.33.1",
+    "tgcrypto>=1.2.5",
+    "tqdm>=4.67.3",
+]
