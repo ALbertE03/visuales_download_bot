@@ -11,3 +11,6 @@ wheels/
 .env
 *.lock
 downloads/
+
+visuales_bot.session
+visuales_bot.session-journal
