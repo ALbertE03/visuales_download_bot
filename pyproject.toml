@@ -14,7 +14,3 @@ dependencies = [
     "tgcrypto>=1.2.5",
     "tqdm>=4.67.3",
 ]
-
-[project.scripts]
-bot = "main:main"
-
