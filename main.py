@@ -401,8 +401,14 @@ async def yt_handler(client, message):
                             f"`{format_size(downloaded)}` / `{format_size(total)}` | `{speed_fmt}`"
                         )
                         
+                        async def edit_msg():
+                            try:
+                                await status_msg.edit_text(msg_text)
+                            except:
+                                pass
+
                         asyncio.run_coroutine_threadsafe(
-                            status_msg.edit_text(msg_text),
+                            edit_msg(),
                             loop
                         )
                         last_edit_time = current_time
