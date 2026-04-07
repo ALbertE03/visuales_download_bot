@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from pyrogram import Client
 from pyrogram.types import Message
 from bot.config import BASE_URL, FORMATS, download_queue, status_data
-from bot.utils import load_processed
+from bot.utils import load_processed, load_explorer_cache, save_explorer_cache
 
 async def down_handler(client: Client, message: Message) -> None:
     if len(message.command) < 2:
@@ -17,6 +17,26 @@ async def down_handler(client: Client, message: Message) -> None:
     status_msg = await message.reply(f"Buscando archivos en:\n{target_url}")
     status_data["is_searching"] = True
     
+    # Cargar cache persistente
+    persistent_cache = load_explorer_cache()
+    if target_url in persistent_cache:
+        cached_files = persistent_cache[target_url]
+        processed = load_processed()
+        found = 0
+        skipped = 0
+        
+        for file_url, filename in cached_files:
+            if filename in processed:
+                skipped += 1
+                continue
+            download_queue.put((file_url, filename, 0))
+            found += 1
+            
+        status_data["is_searching"] = False
+        status_data["total_in_queue"] += found
+        await status_msg.edit_text(f"Busqueda finalizada (Cache persistente).\nAnadidos: {found}\nOmitidos por ya existir: {skipped}")
+        return
+
     try:
         req = requests.get(target_url, timeout=120)
         req.raise_for_status()
@@ -28,6 +48,7 @@ async def down_handler(client: Client, message: Message) -> None:
         skipped = 0
         processed = load_processed()
         
+        current_cache = []
         folder_candidates = []
         for link in links:
             href = link.get("href")
@@ -38,10 +59,12 @@ async def down_handler(client: Client, message: Message) -> None:
                 folder_candidates.append(urljoin(target_url, href))
             elif href.lower().endswith(FORMATS):
                 filename = unquote(href.split('/')[-1])
+                file_url = urljoin(target_url, href)
+                current_cache.append((file_url, filename))
+                
                 if filename in processed:
                     skipped += 1
                     continue
-                file_url = urljoin(target_url, href)
                 download_queue.put((file_url, filename, 0))
                 found += 1
 
@@ -62,14 +85,20 @@ async def down_handler(client: Client, message: Message) -> None:
                     
                     if sub_href.lower().endswith(FORMATS):
                         filename = unquote(sub_href.split('/')[-1])
+                        file_url = urljoin(sub_url, sub_href)
+                        current_cache.append((file_url, filename))
+                        
                         if filename in processed:
                             skipped += 1
                             continue
-                        file_url = urljoin(sub_url, sub_href)
                         download_queue.put((file_url, filename, 0))
                         found += 1
             except requests.exceptions.RequestException as e:
                 print(f"Error en carpeta {sub_url}: {e}")
+        
+       
+        # Guardar en cache persistente
+        save_explorer_cache(target_url, current_cache)
         
         status_data["is_searching"] = False
         status_data["total_in_queue"] += found
