@@ -134,7 +134,8 @@ async def yt_handler(client: Client, message: Message) -> None:
                 return
         
         real_filename = os.path.basename(filename)
-        await status_msg.edit_text(f"Encolando subida: {real_filename}")
+        print(f"[DEBUG] Archivo listo para subir: {filename}")
+        await status_msg.edit_text(f"Preparando envio del archivo: {real_filename}")
         await upload_file(client, filename, real_filename, destination_chat_id=chat_id)
         
     except yt_dlp.utils.DownloadError as e:

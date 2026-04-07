@@ -27,8 +27,15 @@ async def upload_worker(client: Client) -> None:
             task_key = f"up_{filename}"
             
             try:
-                print(f"Subiendo {filename}...")
+                if not os.path.exists(file_path):
+                    print(f"Error: El archivo no existe: {file_path}")
+                    status_data["failed"] += 1
+                    upload_queue.task_done()
+                    continue
+
                 file_size = os.path.getsize(file_path)
+                print(f"Subiendo {filename} ({format_size(file_size)}) a {target}...")
+                
                 status_data["active"][task_key] = {
                     "filename": filename,
                     "progress": 0.0,
@@ -43,13 +50,18 @@ async def upload_worker(client: Client) -> None:
                 async def progress_callback(current: int, total: int) -> None:
                     if task_key not in status_data["active"]:
                         return
+                    
                     elapsed = time.time() - start_time
                     status_data["active"][task_key]["downloaded"] = current
                     status_data["active"][task_key]["total"] = total
+                    
                     if total > 0:
                         status_data["active"][task_key]["progress"] = (current / total) * 100
-                    if elapsed > 1:
+                    
+                    if elapsed > 0.1:
                         status_data["active"][task_key]["speed"] = current / elapsed
+                    else:
+                        status_data["active"][task_key]["speed"] = 0.0
 
                 await client.send_document(
                     chat_id=target,
@@ -58,7 +70,7 @@ async def upload_worker(client: Client) -> None:
                     caption=f"{filename}",
                     progress=progress_callback
                 )
-                print(f"Finalizado: {filename} enviado.")
+                print(f"Finalizado: {filename} enviado con exito.")
                 
                 status_data["completed"] += 1
                 save_processed(filename)
@@ -114,7 +126,7 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
                 status_data["active"][task_key]["total"] = total_size
                 
                 with open(file_path, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=4096*1024):
+                    for chunk in response.iter_content(chunk_size=8192*1024):
                         if chunk:
                             f.write(chunk)
                             downloaded += len(chunk)
