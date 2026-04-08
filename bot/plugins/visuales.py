@@ -17,26 +17,28 @@ async def down_handler(client: Client, message: Message) -> None:
     status_msg = await message.reply(f"Buscando archivos en:\n{target_url}")
     status_data["is_searching"] = True
     
-    # Cargar cache persistente
     persistent_cache = load_explorer_cache()
-    if target_url in persistent_cache:
-        cached_files = persistent_cache[target_url]
-        processed = load_processed()
-        found = 0
-        skipped = 0
-        
-        for file_url, filename in cached_files:
-            if filename in processed:
-                skipped += 1
-                continue
-            download_queue.put((file_url, filename, 0))
-            found += 1
-            
-        status_data["is_searching"] = False
-        status_data["total_in_queue"] += found
-        await status_msg.edit_text(f"Busqueda finalizada (Cache persistente).\nAnadidos: {found}\nOmitidos por ya existir: {skipped}")
-        return
+    cached_data = persistent_cache.get(target_url, [])
 
+    already_scanned_urls = {item[0] for item in cached_data}
+    
+
+    processed = load_processed()
+    found = 0
+    skipped = 0
+    
+    current_cache = list(cached_data) 
+
+    for file_url, filename in cached_data:
+        if filename in processed:
+            skipped += 1
+            continue
+        download_queue.put((file_url, filename, 0))
+        found += 1
+    
+    if found > 0 or skipped > 0:
+        await status_msg.edit_text(f"Cargados de cache: {found + skipped} archivos.\nContinuando exploración para detectar nuevos...")
+ 
     try:
         req = requests.get(target_url, timeout=120)
         req.raise_for_status()
@@ -44,11 +46,6 @@ async def down_handler(client: Client, message: Message) -> None:
         soup = BeautifulSoup(req.text, "html.parser")
         links = soup.find_all("a")
         
-        found = 0
-        skipped = 0
-        processed = load_processed()
-        
-        current_cache = []
         folder_candidates = []
         for link in links:
             href = link.get("href")
@@ -58,9 +55,15 @@ async def down_handler(client: Client, message: Message) -> None:
             if href.endswith('/'):                
                 folder_candidates.append(urljoin(target_url, href))
             elif href.lower().endswith(FORMATS):
-                filename = unquote(href.split('/')[-1])
                 file_url = urljoin(target_url, href)
+                
+                
+                if file_url in already_scanned_urls:
+                    continue
+                
+                filename = unquote(href.split('/')[-1])
                 current_cache.append((file_url, filename))
+                already_scanned_urls.add(file_url) 
                 
                 if filename in processed:
                     skipped += 1
@@ -72,7 +75,8 @@ async def down_handler(client: Client, message: Message) -> None:
         for i, sub_url in enumerate(folder_candidates, 1):
             try:
                 if i % 3 == 0 or i == total_folders:
-                    await status_msg.edit_text(f"Buscando archivos...\n({i}/{total_folders} carpetas exploradas)\nEncontrados: {found}\nOmitidos: {skipped}")
+                    await status_msg.edit_text(f"Buscando archivos...\n({i}/{total_folders} carpetas exploradas)\nEncontrados nuevos: {found}\nOmitidos/Cache: {skipped}")
+                    save_explorer_cache(target_url, current_cache)
                 
                 sub_req = requests.get(sub_url, timeout=120)
                 sub_req.raise_for_status()
@@ -84,9 +88,14 @@ async def down_handler(client: Client, message: Message) -> None:
                         continue
                     
                     if sub_href.lower().endswith(FORMATS):
-                        filename = unquote(sub_href.split('/')[-1])
                         file_url = urljoin(sub_url, sub_href)
+                        
+                        if file_url in already_scanned_urls:
+                            continue
+                            
+                        filename = unquote(sub_href.split('/')[-1])
                         current_cache.append((file_url, filename))
+                        already_scanned_urls.add(file_url)
                         
                         if filename in processed:
                             skipped += 1
@@ -97,7 +106,6 @@ async def down_handler(client: Client, message: Message) -> None:
                 print(f"Error en carpeta {sub_url}: {e}")
         
        
-        # Guardar en cache persistente
         save_explorer_cache(target_url, current_cache)
         
         status_data["is_searching"] = False
