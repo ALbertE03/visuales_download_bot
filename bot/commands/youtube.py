@@ -3,7 +3,7 @@ import os
 import asyncio
 import yt_dlp
 from functools import partial
-from bot.config import status_data, DOWNLOAD_DIR
+from bot.config import CONFIG
 from bot.utils import format_size, format_time
 from bot.core.upload_worker import upload_file
 from pyrogram import Client
@@ -11,7 +11,7 @@ from pyrogram.types import Message
 
 
 async def yt_handler(client: Client, message: Message) -> None:
-    print(f"[DEBUG] Comando /yt recibido: {message.text}")
+    CONFIG.LOGGER.value.debug(f"Comando /yt recibido: {message.text}")
     if len(message.command) < 2:
         await message.reply("Uso: /yt <url> [720, 1080, etc]")
         return
@@ -30,7 +30,7 @@ async def yt_handler(client: Client, message: Message) -> None:
 
     ydl_opts = {
         "format": quality,
-        "outtmpl": f"{DOWNLOAD_DIR}/%(title)s.%(ext)s",
+        "outtmpl": f"{CONFIG.DOWNLOAD_DIR.value}/%(title)s.%(ext)s",
         "quiet": True,
         "no_warnings": True,
         "noprogress": False
@@ -78,7 +78,7 @@ async def yt_handler(client: Client, message: Message) -> None:
                     
                     speed = d.get('speed', 0) or 0
                     
-                    status_data["active"][task_key] = {
+                    CONFIG.status_data.value["active"][task_key] = {
                         "filename": title,
                         "progress": progress,
                         "speed": speed,
@@ -114,8 +114,8 @@ async def yt_handler(client: Client, message: Message) -> None:
                         last_edit_time = current_time
 
                 elif d['status'] == 'finished':
-                    if task_key in status_data["active"]:
-                        del status_data["active"][task_key]
+                    if task_key in CONFIG.status_data.value["active"]:
+                        del CONFIG.status_data.value["active"][task_key]
 
             ydl.add_progress_hook(progress_hook)
             await loop.run_in_executor(None, partial(ydl.download, [url]))
@@ -134,7 +134,7 @@ async def yt_handler(client: Client, message: Message) -> None:
                 return
         
         real_filename = os.path.basename(filename)
-        print(f"[DEBUG] Archivo listo para subir: {filename}")
+        CONFIG.LOGGER.value.info(f"Archivo listo para subir: {filename}")
         await status_msg.edit_text(f"Preparando envio del archivo: {real_filename}")
         await upload_file(client, filename, real_filename, destination_chat_id=chat_id)
         
@@ -142,4 +142,4 @@ async def yt_handler(client: Client, message: Message) -> None:
         await status_msg.edit_text(f"Error de descarga: No se pudo procesar el video. Verifique la URL o la calidad solicitada.")
     except Exception as e:
         await status_msg.edit_text(f"Error inesperado: {str(e)}")
-        print(f"Error en yt: {e}")
+        CONFIG.LOGGER.value.error(f"Error en yt: {e}")

@@ -3,7 +3,9 @@ from urllib.parse import urljoin, unquote
 from bs4 import BeautifulSoup
 from pyrogram import Client
 from pyrogram.types import Message
-from bot.config import BASE_URL, FORMATS, download_queue, status_data
+from pyrogram import Client
+from pyrogram.types import Message
+from bot.config import CONFIG
 from bot.utils import load_processed, load_explorer_cache, save_explorer_cache
 
 async def down_handler(client: Client, message: Message) -> None:
@@ -12,10 +14,10 @@ async def down_handler(client: Client, message: Message) -> None:
         return
     
     path_arg = message.text.split(None, 1)[1].strip('/')
-    target_url = urljoin(BASE_URL, path_arg + "/")
+    target_url = urljoin(CONFIG.BASE_URL.value, path_arg + "/")
     
     status_msg = await message.reply(f"Buscando archivos en:\n{target_url}")
-    status_data["is_searching"] = True
+    CONFIG.status_data.value["is_searching"] = True
     
     persistent_cache = load_explorer_cache()
     cached_entry = persistent_cache.get(target_url, {"files": [], "completed": False})
@@ -41,15 +43,16 @@ async def down_handler(client: Client, message: Message) -> None:
         if filename in processed:
             skipped += 1
             continue
-        download_queue.put((file_url, filename, 0))
+        CONFIG.download_queue.value.put((file_url, filename, 0))
         found += 1
     
     if is_completed:
-        status_data["is_searching"] = False
-        status_data["total_in_queue"] += found
-        if not status_data["status_message"]:
-            status_data["status_message"] = await message.reply("Iniciando seguimiento (Desde caché completo)...")
+        CONFIG.status_data.value["is_searching"] = False
+        CONFIG.status_data.value["total_in_queue"] += found
+        if not CONFIG.status_data.value["status_message"]:
+            CONFIG.status_data.value["status_message"] = await message.reply("Iniciando seguimiento (Desde caché completo)...")
         await status_msg.edit_text(f"Caché completo cargado.\nAnadidos: {found}\nOmitidos: {skipped}")
+        CONFIG.LOGGER.value.info(f"Loaded {found} files from cache for {target_url}")
         return
 
     if found > 0 or skipped > 0:
@@ -70,7 +73,7 @@ async def down_handler(client: Client, message: Message) -> None:
             
             if href.endswith('/'):                
                 folder_candidates.append(urljoin(target_url, href))
-            elif href.lower().endswith(FORMATS):
+            elif href.lower().endswith(CONFIG.FORMATS.value):
                 file_url = urljoin(target_url, href)
                 
                 if file_url in already_scanned_urls:
@@ -83,7 +86,7 @@ async def down_handler(client: Client, message: Message) -> None:
                 if filename in processed:
                     skipped += 1
                     continue
-                download_queue.put((file_url, filename, 0))
+                CONFIG.download_queue.value.put((file_url, filename, 0))
                 found += 1
 
         total_folders = len(folder_candidates)
@@ -102,7 +105,7 @@ async def down_handler(client: Client, message: Message) -> None:
                     if not sub_href or sub_href.startswith("?") or "Parent Directory" in sub_link.text:
                         continue
                     
-                    if sub_href.lower().endswith(FORMATS):
+                    if sub_href.lower().endswith(CONFIG.FORMATS.value):
                         file_url = urljoin(sub_url, sub_href)
                         
                         if file_url in already_scanned_urls:
@@ -115,21 +118,21 @@ async def down_handler(client: Client, message: Message) -> None:
                         if filename in processed:
                             skipped += 1
                             continue
-                        download_queue.put((file_url, filename, 0))
+                        CONFIG.download_queue.value.put((file_url, filename, 0))
                         found += 1
             except requests.exceptions.RequestException as e:
-                print(f"Error en carpeta {sub_url}: {e}")
+                CONFIG.LOGGER.value.error(f"Error en carpeta {sub_url}: {e}")
         
        
         save_explorer_cache(target_url, {"files": current_cache_list, "completed": True})
         
-        status_data["is_searching"] = False
-        status_data["total_in_queue"] += found
+        CONFIG.status_data.value["is_searching"] = False
+        CONFIG.status_data.value["total_in_queue"] += found
         
         await status_msg.edit_text(f"Busqueda finalizada.\nNuevos: {found}\nTotal en carpeta: {len(current_cache_list)}")
         
-        if not status_data["status_message"]:
-            status_data["status_message"] = await message.reply("Iniciando seguimiento de descargas...")
+        if not CONFIG.status_data.value["status_message"]:
+            CONFIG.status_data.value["status_message"] = await message.reply("Iniciando seguimiento de descargas...")
             
     except requests.exceptions.HTTPError as e:
         await status_msg.edit_text(f"Error de red: El servidor respondio con error {e.response.status_code}")

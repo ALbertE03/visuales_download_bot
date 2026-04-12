@@ -1,7 +1,7 @@
 import asyncio
 from threading import Thread
 from pyrogram import Client
-from bot.config import API_ID, API_HASH, TOKEN, CANT_WORKER, UPLOAD_WORKER
+from bot.config import CONFIG
 from bot.core.download_worker import download_file_worker
 from bot.core.upload_worker import upload_worker
 from bot.core.update_status import update_status_message
@@ -13,7 +13,7 @@ from pyrogram import filters
 
 
 def main():
-    print("Iniciando Bot...")
+    CONFIG.LOGGER.value.info("Iniciando Bot...")
 
     try:
         loop = asyncio.get_event_loop()
@@ -21,7 +21,7 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    app = Client("visuales_bot", api_id=API_ID, api_hash=API_HASH, bot_token=TOKEN, sleep_threshold=60)
+    app = Client("visuales_bot", api_id=CONFIG.API_ID.value, api_hash=CONFIG.API_HASH.value, bot_token=CONFIG.TOKEN.value, sleep_threshold=120, max_concurrent_transmissions=2)
 
     app.add_handler(MessageHandler(start_handler, filters.command("start")))
     app.add_handler(MessageHandler(main_menu_handler, filters.command("main_menu")))
@@ -29,17 +29,17 @@ def main():
     app.add_handler(MessageHandler(yt_handler, filters.command("yt")))
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
 
-    for _ in range(CANT_WORKER):
+    for _ in range(CONFIG.CANT_WORKER.value):
         Thread(
             target=download_file_worker, args=(app, loop), daemon=True
         ).start()
 
-    for _ in range(UPLOAD_WORKER):
+    for _ in range(CONFIG.UPLOAD_WORKER.value):
         asyncio.ensure_future(upload_worker(app), loop=loop)
 
     asyncio.ensure_future(update_status_message(app), loop=loop)
 
-    print(f"Bot activo. Workers: Descarga={CANT_WORKER}, Subida={UPLOAD_WORKER}")
+    CONFIG.LOGGER.value.info(f"Bot activo. Workers: Descarga={CONFIG.CANT_WORKER.value}, Subida={CONFIG.UPLOAD_WORKER.value}")
 
     app.run()
 

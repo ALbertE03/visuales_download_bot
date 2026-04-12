@@ -2,7 +2,7 @@ import math
 import os
 import json
 from typing import Set, Dict, Any
-from bot.config import PROCESSED_DB, EXPLORER_CACHE_DB
+from bot.config import CONFIG
 
 def format_size(size_bytes: int) -> str:
     if size_bytes <= 0: return "0 B"
@@ -26,9 +26,9 @@ def format_time(seconds: float) -> str:
         return f"{seconds}s"
 
 def load_processed() -> Set[str]:
-    if os.path.exists(PROCESSED_DB):
+    if os.path.exists(CONFIG.PROCESSED_DB.value):
         try:
-            with open(PROCESSED_DB, "r") as f: return set(json.load(f))
+            with open(CONFIG.PROCESSED_DB.value, "r") as f: return set(json.load(f))
         except: return set()
     return set()
 
@@ -36,16 +36,16 @@ def save_processed(filename: str) -> None:
     data = list(load_processed())
     if filename not in data:
         data.append(filename)
-        with open(PROCESSED_DB, "w") as f: json.dump(data, f)
+        with open(CONFIG.PROCESSED_DB.value, "w") as f: json.dump(data, f)
 
 def load_explorer_cache() -> Dict[str, Any]:
-    if os.path.exists(EXPLORER_CACHE_DB):
+    if os.path.exists(CONFIG.EXPLORER_CACHE_DB.value):
         try:
-            with open(EXPLORER_CACHE_DB, "r") as f: return json.load(f)
+            with open(CONFIG.EXPLORER_CACHE_DB.value, "r") as f: return json.load(f)
         except: return {}
     return {}
 
 def save_explorer_cache(url: str, files: list) -> None:
     cache = load_explorer_cache()
     cache[url] = files
-    with open(EXPLORER_CACHE_DB, "w") as f: json.dump(cache, f)
+    with open(CONFIG.EXPLORER_CACHE_DB.value, "w") as f: json.dump(cache, f)

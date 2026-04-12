@@ -1,5 +1,5 @@
 import asyncio
-from bot.config import status_data 
+from bot.config import CONFIG 
 from bot.utils import format_size, format_time
 from pyrogram import Client
 
@@ -8,12 +8,12 @@ async def update_status_message(client: Client) -> None:
     last_text = ""
     while True:
         try:
-            if status_data["status_message"]:
+            if CONFIG.status_data.value["status_message"]:
                 lines = ["[ PANEL DE CONTROL ]\n"]
-                active_list = list(status_data["active"].values())
+                active_list = list(CONFIG.status_data.value["active"].values())
                 
                 if not active_list:
-                    if status_data["total_in_queue"] > 0:
+                    if CONFIG.status_data.value["total_in_queue"] > 0:
                         lines.append("Esperando para iniciar tareas...")
                     else:
                         lines.append("Sin tareas activas en este momento.")
@@ -43,16 +43,16 @@ async def update_status_message(client: Client) -> None:
                         lines.append(f"Velocidad: {speed_fmt}")
                         lines.append(f"Restante: {eta_val}\n")
                 
-                lines.append("⎯" * 15)
-                lines.append(f"Completados: {status_data['completed']}")
-                lines.append(f"Fallidos: {status_data['failed']}")
-                lines.append(f"En Cola: {status_data['total_in_queue']}")
+                lines.append("-" * 15)
+                lines.append(f"Completados: {CONFIG.status_data.value['completed']}")
+                lines.append(f"Fallidos: {CONFIG.status_data.value['failed']}")
+                lines.append(f"En Cola: {CONFIG.status_data.value['total_in_queue']}")
                 
                 txt = "\n".join(lines)
                 
                 if txt != last_text:
                     try:
-                        await status_data["status_message"].edit_text(txt)
+                        await CONFIG.status_data.value["status_message"].edit_text(txt)
                         last_text = txt
                     except Exception as e:
                         if "MESSAGE_ID_INVALID" in str(e) or "MESSAGE_NOT_MODIFIED" not in str(e):
@@ -60,5 +60,5 @@ async def update_status_message(client: Client) -> None:
             
             await asyncio.sleep(4)
         except Exception as e:
-            print(f"Error en bucle de status: {e}")
+            CONFIG.LOGGER.value.error(f"Error en bucle de status: {e}")
             await asyncio.sleep(5)

@@ -1,6 +1,6 @@
 from pyrogram import Client
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
-from bot.config import status_data
+from bot.config import CONFIG
 
 async def main_menu_handler(client: Client, message: Message) -> None:
     keyboard = InlineKeyboardMarkup([
@@ -8,6 +8,7 @@ async def main_menu_handler(client: Client, message: Message) -> None:
         [InlineKeyboardButton("Ajustes", callback_data="settings")]
     ])
     await message.reply("Elige una opcion:", reply_markup=keyboard)
+    CONFIG.LOGGER.value.info(f"Bot start by {message.from_user.id}")
 
 async def start_handler(client: Client, message: Message) -> None:
     await message.reply("Comandos disponibles:\n"
@@ -17,4 +18,4 @@ async def start_handler(client: Client, message: Message) -> None:
 
 async def status_handler(client: Client, message: Message) -> None:
     msg = await message.reply("Obteniendo estado...")
-    status_data["status_message"] = msg
+    CONFIG.status_data.value["status_message"] = msg
