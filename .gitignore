@@ -11,6 +11,7 @@ wheels/
 .env
 *.lock
 downloads/
+down_pend/
 
 visuales_bot.session
 visuales_bot.session-journal

@@ -5,7 +5,7 @@ import yt_dlp
 from functools import partial
 from bot.config import status_data, DOWNLOAD_DIR
 from bot.utils import format_size, format_time
-from bot.core.workers import upload_file
+from bot.core.upload_worker import upload_file
 from pyrogram import Client
 from pyrogram.types import Message
 
