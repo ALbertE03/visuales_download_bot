@@ -2,8 +2,9 @@ import asyncio
 from threading import Thread
 from pyrogram import Client
 from bot.config import API_ID, API_HASH, TOKEN, CANT_WORKER, UPLOAD_WORKER
-from bot.core.download_worker import download_file_worker, update_status_message
+from bot.core.download_worker import download_file_worker
 from bot.core.upload_worker import upload_worker
+from bot.core.update_status import update_status_message
 from bot.plugins.general import start_handler, main_menu_handler, status_handler
 from bot.plugins.youtube import yt_handler
 from bot.plugins.visuales import down_handler
