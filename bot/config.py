@@ -23,8 +23,8 @@ class CONFIG(Enum):
     EXPLORER_CACHE_DB: str = "explorer_cache.json"
     FORMATS: tuple = ('.mp4', '.mkv', '.avi', '.mpg', '.dat', '.wmv', '.mov', '.mpg', '.mpeg')
 
-    CANT_WORKER: int = 1
-    UPLOAD_WORKER: int = 1
+    CANT_WORKER: int = 2
+    UPLOAD_WORKER: int = 2
     RETRY_MAX: int = 3
 
 

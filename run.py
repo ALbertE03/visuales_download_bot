@@ -5,7 +5,7 @@ from bot.config import CONFIG
 from bot.core.download_worker import download_file_worker
 from bot.core.upload_worker import upload_worker
 from bot.core.update_status import update_status_message
-from bot.commands.general import start_handler, main_menu_handler, status_handler
+from bot.commands.general import start_handler, main_menu_handler, status_handler, torrent_handler
 from bot.commands.youtube import yt_handler
 from bot.commands.visuales import down_handler
 from pyrogram.handlers import MessageHandler
@@ -28,6 +28,7 @@ def main():
     app.add_handler(MessageHandler(status_handler, filters.command("status")))
     app.add_handler(MessageHandler(yt_handler, filters.command("yt")))
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
+    app.add_handler(MessageHandler(torrent_handler, filters.command("torrent")))
 
     for _ in range(CONFIG.CANT_WORKER.value):
         Thread(

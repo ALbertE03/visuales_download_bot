@@ -2,14 +2,35 @@ import os
 import time
 import asyncio
 from bot.config import CONFIG
-from bot.utils import format_size, save_processed
+from bot.utils import format_size, save_processed,split_file
 from pyrogram import Client
 from typing import Optional
 
 
 
 async def upload_file(client: Client, file_path: str, filename: str, destination_chat_id: Optional[int] = None) -> None:
-    """Anade archivo a la cola de subida"""
+    """Anade archivo a la cola de subida. Si es muy grande, lo divide primero."""
+    if os.path.isdir(file_path):
+        CONFIG.LOGGER.value.info(f"Detectado directorio en upload_file: {filename}, subiendo contenidos...")
+        for root, dirs, files in os.walk(file_path):
+            for file in files:
+                full_path = os.path.join(root, file)
+                await upload_file(client, full_path, file, destination_chat_id)
+        return
+
+    if os.path.isfile(file_path):
+        file_size = os.path.getsize(file_path)
+        if file_size > 2000 * 1024 * 1024:  # > 2GB
+            CONFIG.LOGGER.value.info(f"Archivo {filename} es mayor a 2GB, dividiendo...")
+            parts = split_file(file_path)
+            for part in parts:
+                await CONFIG.upload_queue.value.put((part, os.path.basename(part), destination_chat_id))
+            try:
+                os.remove(file_path)
+            except:
+                pass
+            return
+
     await CONFIG.upload_queue.value.put((file_path, filename, destination_chat_id))
 
 async def upload_worker(client: Client) -> None:
