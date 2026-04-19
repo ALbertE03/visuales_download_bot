@@ -27,16 +27,23 @@ def download_torrent(client, loop, magnet_link):
 
     CONFIG.LOGGER.value.info(f"Iniciando descarga de torrent: {filename}")
 
+    CONFIG.status_data.value["active"][task_key]["status"] = "Recopilando información (Metadata)..."
+
     while not handle.has_metadata():
         time.sleep(1)
         if task_key not in CONFIG.status_data.value["active"]:
+            CONFIG.LOGGER.value.info("saliendo...")
             ses.remove_torrent(handle)
             return
-
-    filename = handle.get_torrent_info().name()
+        CONFIG.LOGGER.value.info("esperado metadata")
+    
+    CONFIG.LOGGER.value.info("Metadata obtenida")
+    torrent_info = handle.get_torrent_info()
+    filename = torrent_info.name()
     CONFIG.status_data.value["active"][task_key]["filename"] = filename
-    total_size = handle.get_torrent_info().total_size()
+    total_size = torrent_info.total_size()
     CONFIG.status_data.value["active"][task_key]["total"] = total_size
+    CONFIG.status_data.value["active"][task_key]["status"] = "Descargando..."
 
     while not handle.is_seed():
         s = handle.status()
@@ -54,21 +61,28 @@ def download_torrent(client, loop, magnet_link):
     
     file_path = os.path.join(CONFIG.DOWNLOAD_DIR.value, filename)
     
+    video_extensions = CONFIG.FORMATS.value
 
     if os.path.isdir(file_path):
-        CONFIG.LOGGER.value.info(f"Torrent {filename} es una carpeta, subiendo archivos individualmente...")
+        CONFIG.LOGGER.value.info(f"Torrent {filename} es una carpeta, filtrando videos para subir...")
         for root, dirs, files in os.walk(file_path):
             for file in files:
-                full_path = os.path.join(root, file)
-                asyncio.run_coroutine_threadsafe(
-                    upload_file(client, full_path, file),
-                    loop
-                )
+                if file.lower().endswith(video_extensions):
+                    full_path = os.path.join(root, file)
+                    asyncio.run_coroutine_threadsafe(
+                        upload_file(client, full_path, file),
+                        loop
+                    )
+                else:
+                    CONFIG.LOGGER.value.info(f"Omitiendo archivo no vÃ­deo: {file}")
     else:
-        asyncio.run_coroutine_threadsafe(
-            upload_file(client, file_path, filename),
-            loop
-        )
+        if filename.lower().endswith(video_extensions):
+            asyncio.run_coroutine_threadsafe(
+                upload_file(client, file_path, filename),
+                loop
+            )
+        else:
+            CONFIG.LOGGER.value.info(f"Archivo torrent omitido por no ser video: {filename}")
     
     if task_key in CONFIG.status_data.value["active"]:
         del CONFIG.status_data.value["active"][task_key]

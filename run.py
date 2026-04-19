@@ -5,7 +5,8 @@ from bot.config import CONFIG
 from bot.core.download_worker import download_file_worker
 from bot.core.upload_worker import upload_worker
 from bot.core.update_status import update_status_message
-from bot.commands.general import start_handler, main_menu_handler, status_handler, torrent_handler
+from bot.commands.general import start_handler, main_menu_handler, status_handler
+from bot.commands.torrents import torrent_handler
 from bot.commands.youtube import yt_handler
 from bot.commands.visuales import down_handler
 from pyrogram.handlers import MessageHandler

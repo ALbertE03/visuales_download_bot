@@ -25,13 +25,22 @@ async def update_status_message(client: Client) -> None:
                         total = data.get("total", 0)
                         total_fmt = format_size(total)
                         progress = data.get("progress", 0.0)
+                        status_info = data.get("status", "")
                         
                         filled = int(progress / 10)
                         bar = "▰" * filled + "▱" * (10 - filled)
                         
-                        task_type = "DESCARGANDO" if data.get("type") == "download" else "SUBIENDO"
+                        task_type_map = {
+                            "download": "DESCARGANDO",
+                            "upload": "SUBIENDO",
+                            "torrent": "TORRENT",
+                        }
+                        task_type = task_type_map.get(data.get("type"), "TAREA")
+                        
                         lines.append(f"== {task_type} ==")
                         lines.append(f"Archivo: {data['filename']}")
+                        if status_info:
+                            lines.append(f"Estado: {status_info}")
                         lines.append(f"[{bar}] {progress:.1f}%")
                         
                         eta_val = "calculando..."
