@@ -5,6 +5,7 @@ import queue
 import asyncio
 from bot.config import CONFIG
 from bot.core.upload_worker import upload_file
+from bot.constants import CONSTANTS
 from pyrogram import Client
 
 
@@ -28,10 +29,10 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
                 "speed": 0.0,
                 "downloaded": 0,
                 "total": 0,
-                "type": "download"
+                "type": CONSTANTS.TASK_TYPE_DOWNLOAD
             }
             
-            CONFIG.LOGGER.value.info(f"Descargando {filename} desde {url}...")
+            CONFIG.LOGGER.value.info(CONSTANTS.LOG_DOWNLOADING.format(filename=filename, url=url))
             
             try:
                 start_time = time.time()
@@ -43,7 +44,7 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
                 CONFIG.status_data.value["active"][task_key]["total"] = total_size
                 
                 with open(file_path, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192*1024):
+                    for chunk in response.iter_content(chunk_size=CONSTANTS.CHUNK_SIZE):
                         if chunk:
                             f.write(chunk)
                             downloaded += len(chunk)
@@ -63,7 +64,7 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
                 )
                 
             except Exception as e:
-                CONFIG.LOGGER.value.error(f"Error descargando {filename}: {e}")
+                CONFIG.LOGGER.value.error(CONSTANTS.LOG_ERROR_DOWNLOADING.format(filename=filename, error=e))
                 if retries < CONFIG.RETRY_MAX.value:
                     CONFIG.download_queue.value.put((url, filename, retries + 1))
                 else:

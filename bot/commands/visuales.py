@@ -7,16 +7,17 @@ from pyrogram import Client
 from pyrogram.types import Message
 from bot.config import CONFIG
 from bot.utils import load_processed, load_explorer_cache, save_explorer_cache
+from bot.constants import CONSTANTS
 
 async def down_handler(client: Client, message: Message) -> None:
     if len(message.command) < 2:
-        await message.reply("Uso: /down <Path>")
+        await message.reply(CONSTANTS.MSG_CMD_VISUALES_USAGE)
         return
     
     path_arg = message.text.split(None, 1)[1].strip('/')
     target_url = urljoin(CONFIG.BASE_URL.value, path_arg + "/")
     
-    status_msg = await message.reply(f"Buscando archivos en:\n{target_url}")
+    status_msg = await message.reply(CONSTANTS.MSG_SEARCHING_VISUALES.format(url=target_url))
     CONFIG.status_data.value["is_searching"] = True
     
     persistent_cache = load_explorer_cache()
@@ -50,13 +51,13 @@ async def down_handler(client: Client, message: Message) -> None:
         CONFIG.status_data.value["is_searching"] = False
         CONFIG.status_data.value["total_in_queue"] += found
         if not CONFIG.status_data.value["status_message"]:
-            CONFIG.status_data.value["status_message"] = await message.reply("Iniciando seguimiento (Desde caché completo)...")
-        await status_msg.edit_text(f"Caché completo cargado.\nAnadidos: {found}\nOmitidos: {skipped}")
+            CONFIG.status_data.value["status_message"] = await message.reply(CONSTANTS.MSG_START_TRACKING_CACHE)
+        await status_msg.edit_text(CONSTANTS.MSG_CACHE_COMPLETE.format(found=found, skipped=skipped))
         CONFIG.LOGGER.value.info(f"Loaded {found} files from cache for {target_url}")
         return
 
     if found > 0 or skipped > 0:
-        await status_msg.edit_text(f"Cache parcial: {found + skipped} archivos.\nBuscando el resto en la web...")
+        await status_msg.edit_text(CONSTANTS.MSG_CACHE_PARTIAL.format(found_total=found+skipped))
 
     try:
         req = requests.get(target_url, timeout=120)
@@ -93,7 +94,7 @@ async def down_handler(client: Client, message: Message) -> None:
         for i, sub_url in enumerate(folder_candidates, 1):
             try:
                 if i % 3 == 0 or i == total_folders:
-                    await status_msg.edit_text(f"Escaneando parcial...\n({i}/{total_folders} carpetas)\nEncontrados nuevos: {found}\nOmitidos/Cache: {skipped}")
+                    await status_msg.edit_text(CONSTANTS.MSG_SCAN_PARTIAL.format(i=i, total=total_folders, found=found, skipped=skipped))
                     save_explorer_cache(target_url, {"files": current_cache_list, "completed": False})
                 
                 sub_req = requests.get(sub_url, timeout=120)
@@ -121,7 +122,7 @@ async def down_handler(client: Client, message: Message) -> None:
                         CONFIG.download_queue.value.put((file_url, filename, 0))
                         found += 1
             except requests.exceptions.RequestException as e:
-                CONFIG.LOGGER.value.error(f"Error en carpeta {sub_url}: {e}")
+                CONFIG.LOGGER.value.error(CONSTANTS.ERR_FOLDER_SCAN.format(url=sub_url, error=e))
         
        
         save_explorer_cache(target_url, {"files": current_cache_list, "completed": True})
@@ -129,12 +130,12 @@ async def down_handler(client: Client, message: Message) -> None:
         CONFIG.status_data.value["is_searching"] = False
         CONFIG.status_data.value["total_in_queue"] += found
         
-        await status_msg.edit_text(f"Busqueda finalizada.\nNuevos: {found}\nTotal en carpeta: {len(current_cache_list)}")
+        await status_msg.edit_text(CONSTANTS.MSG_SEARCH_FINISHED.format(found=found, total=len(current_cache_list)))
         
         if not CONFIG.status_data.value["status_message"]:
-            CONFIG.status_data.value["status_message"] = await message.reply("Iniciando seguimiento de descargas...")
+            CONFIG.status_data.value["status_message"] = await message.reply(CONSTANTS.MSG_START_TRACKING)
             
     except requests.exceptions.HTTPError as e:
-        await status_msg.edit_text(f"Error de red: El servidor respondio con error {e.response.status_code}")
+        await status_msg.edit_text(CONSTANTS.ERR_NETWORK.format(status=e.response.status_code))
     except Exception as e:
-        await status_msg.edit_text(f"Error inesperado: {str(e)}")
+        await status_msg.edit_text(CONSTANTS.ERR_UNEXPECTED.format(error=str(e)))

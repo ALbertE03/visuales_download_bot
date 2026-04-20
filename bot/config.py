@@ -5,6 +5,7 @@ import asyncio
 from typing import Dict, Any
 from enum import Enum
 from bot.log import logger
+from bot.constants import CONSTANTS
 
 
 load_dotenv()
@@ -18,10 +19,10 @@ class CONFIG(Enum):
 
 
     BASE_URL: str = os.getenv("BASE_URL", "https://visuales.uclv.cu/")
-    DOWNLOAD_DIR: str = "downloads"
-    PROCESSED_DB: str = "processed.json"
-    EXPLORER_CACHE_DB: str = "explorer_cache.json"
-    FORMATS: tuple = ('.mp4', '.mkv', '.avi', '.mpg', '.dat', '.wmv', '.mov', '.mpg', '.mpeg')
+    DOWNLOAD_DIR: str = CONSTANTS.DOWNLOAD_DIR
+    PROCESSED_DB: str = CONSTANTS.PROCESSED_DB
+    EXPLORER_CACHE_DB: str = CONSTANTS.EXPLORER_CACHE_DB
+    FORMATS: tuple = CONSTANTS.VIDEO_FORMATS
 
     CANT_WORKER: int = 2
     UPLOAD_WORKER: int = 2

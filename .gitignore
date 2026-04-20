@@ -8,6 +8,15 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Workspace files
+.DS_Store
+logs/
+downloads/
+database/explorer_cache.json
+database/processed.json
+*.session
+*.session-journal
 .env
 *.lock
 downloads/

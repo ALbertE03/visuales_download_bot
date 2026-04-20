@@ -1,27 +1,21 @@
 from pyrogram import Client
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 from bot.config import CONFIG
+from bot.constants import CONSTANTS
 
 
 async def main_menu_handler(client: Client, message: Message) -> None:
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("Comenzar", callback_data="start_bot")],
-        [InlineKeyboardButton("Ajustes", callback_data="settings")]
+        [InlineKeyboardButton(CONSTANTS.MSG_START_BUTTON, callback_data="start_bot")],
+        [InlineKeyboardButton(CONSTANTS.MSG_SETTINGS_BUTTON, callback_data="settings")]
     ])
-    await message.reply("Elige una opcion:", reply_markup=keyboard)
-    CONFIG.LOGGER.value.info(f"Bot start by {message.from_user.id}")
+    await message.reply(CONSTANTS.MSG_CHOOSE_OPTION, reply_markup=keyboard)
+    CONFIG.LOGGER.value.info(f"Bot iniciado por {message.from_user.id}")
 
 async def start_handler(client: Client, message: Message) -> None:
-    await message.reply("Comandos disponibles:\n"
-                        " - /down <ruta> - Descarga desde Visuales UCLV\n"
-                        " - /yt <url> - Descarga desde YouTube\n"
-                        " - /ig <url> - Descarga desde Instagram\n"
-                        " - /tw <url> - Descarga desde Twitter (X)\n"
-                        " - /gdrive <url> - Descarga desde Google Drive\n"
-                        " - /torrent <magnet_link> - Descarga un torrent (Magnet)\n"
-                        " - /status - Panel de Control")
+    await message.reply(CONSTANTS.MSG_HELP)
 
 
 async def status_handler(client: Client, message: Message) -> None:
-    msg = await message.reply("Obteniendo estado...")
+    msg = await message.reply(CONSTANTS.MSG_GETTING_STATUS)
     CONFIG.status_data.value["status_message"] = msg

@@ -7,11 +7,8 @@ from bot.core.upload_worker import upload_worker
 from bot.core.update_status import update_status_message
 from bot.commands.general import start_handler, main_menu_handler, status_handler
 from bot.commands.torrents import torrent_handler
-from bot.commands.youtube import yt_handler
 from bot.commands.visuales import down_handler
-from bot.commands.gdrive import gdrive_handler
-from bot.commands.instagram import instagram_handler
-from bot.commands.twitter import twitter_handler
+from bot.commands.download import download_handler
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
 
@@ -30,13 +27,9 @@ def main():
     app.add_handler(MessageHandler(start_handler, filters.command("start")))
     app.add_handler(MessageHandler(main_menu_handler, filters.command("main_menu")))
     app.add_handler(MessageHandler(status_handler, filters.command("status")))
-    app.add_handler(MessageHandler(yt_handler, filters.command("yt")))
+    app.add_handler(MessageHandler(download_handler, filters.command(["dl", "yt", "gdrive", "ig", "tw"])))
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
-    app.add_handler(MessageHandler(gdrive_handler, filters.command("gdrive")))
-    app.add_handler(MessageHandler(instagram_handler, filters.command("ig")))    
-    app.add_handler(MessageHandler(twitter_handler, filters.command("tw")))
-
-    app.add_handler(MessageHandler(torrent_handler, filters.command("torrent")))
+    app.add_handler(MessageHandler(torrent_handler, filters.command("torrent") | (filters.document & filters.regex(r".*\.torrent$"))))
 
     for _ in range(CONFIG.CANT_WORKER.value):
         Thread(

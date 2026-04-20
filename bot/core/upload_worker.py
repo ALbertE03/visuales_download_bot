@@ -3,6 +3,7 @@ import time
 import asyncio
 from bot.config import CONFIG
 from bot.utils import format_size, save_processed,split_file
+from bot.constants import CONSTANTS
 from pyrogram import Client
 from typing import Optional
 
@@ -11,7 +12,7 @@ from typing import Optional
 async def upload_file(client: Client, file_path: str, filename: str, destination_chat_id: Optional[int] = None) -> None:
     """Anade archivo a la cola de subida. Si es muy grande, lo divide primero."""
     if os.path.isdir(file_path):
-        CONFIG.LOGGER.value.info(f"Detectado directorio en upload_file: {filename}, subiendo contenidos...")
+        CONFIG.LOGGER.value.info(CONSTANTS.LOG_DETECTED_DIR.format(filename=filename))
         for root, dirs, files in os.walk(file_path):
             for file in files:
                 full_path = os.path.join(root, file)
@@ -21,7 +22,7 @@ async def upload_file(client: Client, file_path: str, filename: str, destination
     if os.path.isfile(file_path):
         file_size = os.path.getsize(file_path)
         if file_size > 2000 * 1024 * 1024:  # > 2GB
-            CONFIG.LOGGER.value.info(f"Archivo {filename} es mayor a 2GB, dividiendo...")
+            CONFIG.LOGGER.value.info(CONSTANTS.LOG_SPLITTING.format(filename=filename))
             parts = split_file(file_path)
             for part in parts:
                 await CONFIG.upload_queue.value.put((part, os.path.basename(part), destination_chat_id))
@@ -46,13 +47,13 @@ async def upload_worker(client: Client) -> None:
             
             try:
                 if not os.path.exists(file_path):
-                    CONFIG.LOGGER.value.error(f"Error: El archivo no existe: {file_path}")
+                    CONFIG.LOGGER.value.error(CONSTANTS.ERR_FILE_NOT_FOUND.format(path=file_path))
                     CONFIG.status_data.value["failed"] += 1
                     CONFIG.upload_queue.value.task_done()
                     continue
 
                 file_size = os.path.getsize(file_path)
-                CONFIG.LOGGER.value.info(f"Subiendo {filename} ({format_size(file_size)}) a {target}...")
+                CONFIG.LOGGER.value.info(CONSTANTS.LOG_UPLOADING.format(filename=filename, size=format_size(file_size), target=target))
                 
                 CONFIG.status_data.value["active"][task_key] = {
                     "filename": filename,
@@ -60,7 +61,7 @@ async def upload_worker(client: Client) -> None:
                     "speed": 0.0,
                     "downloaded": 0,
                     "total": file_size,
-                    "type": "upload"
+                    "type": CONSTANTS.TASK_TYPE_UPLOAD
                 }
                 
                 start_time = time.time()
@@ -90,15 +91,15 @@ async def upload_worker(client: Client) -> None:
                             caption=f"{filename}",
                             progress=progress_callback
                         )
-                        CONFIG.LOGGER.value.info(f"Finalizado: {filename} enviado con exito.")
+                        CONFIG.LOGGER.value.info(CONSTANTS.LOG_UPLOAD_SUCCESS.format(filename=filename))
                         break
                     except Exception as e:
                         if "call_exception_handler" in str(e) or "NoneType" in str(e):
-                            CONFIG.LOGGER.value.warning(f"Error de sesion detectado en {filename}, esperando para reintentar...")
+                            CONFIG.LOGGER.value.warning(CONSTANTS.LOG_SESSION_ERROR.format(filename=filename))
                             await asyncio.sleep(10)
                         
                         if try_count < CONFIG.RETRY_MAX.value:
-                            CONFIG.LOGGER.value.warning(f"Error subiendo {filename} (intento {try_count + 1}): {e}. Reintentando...")
+                            CONFIG.LOGGER.value.warning(CONSTANTS.LOG_UPLOAD_RETRY.format(filename=filename, attempt=try_count + 1, error=e))
                             await asyncio.sleep(5)
                         else:
                             raise e
@@ -108,10 +109,10 @@ async def upload_worker(client: Client) -> None:
 
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    CONFIG.LOGGER.value.info(f"Archivo local eliminado: {filename}")
+                    CONFIG.LOGGER.value.info(CONSTANTS.LOG_FILE_DELETED.format(filename=filename))
                     
             except Exception as e:
-                CONFIG.LOGGER.value.error(f"Error subiendo {filename}: {e}")
+                CONFIG.LOGGER.value.error(CONSTANTS.LOG_UPLOAD_ERROR.format(filename=filename, error=e))
                 CONFIG.status_data.value["failed"] += 1
             finally:
                 if task_key in CONFIG.status_data.value["active"]:
@@ -119,5 +120,5 @@ async def upload_worker(client: Client) -> None:
                 CONFIG.upload_queue.value.task_done()
                 
         except Exception as e:
-            print(f"Error en worker de subida: {e}")
+            CONFIG.LOGGER.value.error(CONSTANTS.LOG_UPLOAD_WORKER_ERROR.format(error=e))
             await asyncio.sleep(1)
