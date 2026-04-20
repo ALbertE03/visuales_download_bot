@@ -15,6 +15,7 @@ async def start_handler(client: Client, message: Message) -> None:
     await message.reply("Comandos disponibles:\n"
                         " - /down <ruta> - Descarga desde Visuales UCLV\n"
                         " - /yt <url> - Descarga desde YouTube\n"
+                        " - /gdrive <url> - Descarga desde Google Drive\n"
                         " - /torrent <magnet_link> - Descarga un torrent (Magnet)\n"
                         " - /status - Panel de Control")
 
