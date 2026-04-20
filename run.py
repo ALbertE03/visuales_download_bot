@@ -10,6 +10,7 @@ from bot.commands.torrents import torrent_handler
 from bot.commands.youtube import yt_handler
 from bot.commands.visuales import down_handler
 from bot.commands.gdrive import gdrive_handler
+from bot.commands.instagram import instagram_handler
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
 
@@ -31,6 +32,7 @@ def main():
     app.add_handler(MessageHandler(yt_handler, filters.command("yt")))
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
     app.add_handler(MessageHandler(gdrive_handler, filters.command("gdrive")))
+    app.add_handler(MessageHandler(instagram_handler, filters.command("ig")))
     app.add_handler(MessageHandler(torrent_handler, filters.command("torrent")))
 
     for _ in range(CONFIG.CANT_WORKER.value):
