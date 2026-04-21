@@ -51,7 +51,12 @@ async def update_status_message(client: Client) -> None:
                             eta_val = format_time(remaining / speed)
                         
                         lines.append(CONSTANTS.PANEL_UP_TO_DATE.format(downloaded=downloaded_fmt, total=total_fmt))
-                        lines.append(CONSTANTS.PANEL_SPEED.format(speed=speed_fmt))
+                        
+                        if data.get("type") == "split":
+                            lines.append(f"Velocidad Compresión: {speed_fmt}")
+                        else:
+                            lines.append(CONSTANTS.PANEL_SPEED.format(speed=speed_fmt))
+                            
                         lines.append(CONSTANTS.PANEL_ETA.format(eta=eta_val))
                 
                 lines.append(CONSTANTS.PANEL_DIVIDER)

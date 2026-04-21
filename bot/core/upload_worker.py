@@ -69,7 +69,7 @@ async def upload_file(client: Client, file_path: str, filename: str, destination
             monitor_task = asyncio.create_task(monitor_split_progress())
             
             try:
-                parts = await loop.run_in_executor(None, split_file, file_path)
+                parts = await loop.run_in_executor(None, split_file, file_path, 1000) # Dividir en 1000MB (1GB) en lugar de 1.9GB
             finally:
                 if task_key in CONFIG.status_data.value["active"]:
                     del CONFIG.status_data.value["active"][task_key]
