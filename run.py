@@ -11,6 +11,8 @@ from bot.commands.visuales import down_handler
 from bot.commands.download import download_handler
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
+from pyrogram import compose
+from userbot.main import userbot_app
 
 
 def main():
@@ -22,28 +24,45 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    app = Client("visuales_bot", api_id=CONFIG.API_ID.value, api_hash=CONFIG.API_HASH.value, bot_token=CONFIG.TOKEN.value, sleep_threshold=120, max_concurrent_transmissions=2)
+    app = Client(
+        "visuales_bot",
+        api_id=CONFIG.API_ID.value,
+        api_hash=CONFIG.API_HASH.value,
+        bot_token=CONFIG.TOKEN.value,
+        sleep_threshold=120,
+        max_concurrent_transmissions=2,
+    )
 
     app.add_handler(MessageHandler(start_handler, filters.command("start")))
     app.add_handler(MessageHandler(main_menu_handler, filters.command("main_menu")))
     app.add_handler(MessageHandler(status_handler, filters.command("status")))
-    app.add_handler(MessageHandler(download_handler, filters.command(["dl", "yt", "gdrive", "ig", "tw"])))
+    app.add_handler(
+        MessageHandler(
+            download_handler, filters.command(["dl", "yt", "gdrive", "ig", "tw"])
+        )
+    )
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
-    app.add_handler(MessageHandler(torrent_handler, filters.command("torrent") | (filters.document & filters.regex(r".*\.torrent$"))))
+    app.add_handler(
+        MessageHandler(
+            torrent_handler,
+            filters.command("torrent")
+            | (filters.document & filters.regex(r".*\.torrent$")),
+        )
+    )
 
     for _ in range(CONFIG.CANT_WORKER.value):
-        Thread(
-            target=download_file_worker, args=(app, loop), daemon=True
-        ).start()
+        Thread(target=download_file_worker, args=(app, loop), daemon=True).start()
 
     for _ in range(CONFIG.UPLOAD_WORKER.value):
         asyncio.ensure_future(upload_worker(app), loop=loop)
 
     asyncio.ensure_future(update_status_message(app), loop=loop)
 
-    CONFIG.LOGGER.value.info(f"Bot activo. Workers: Descarga={CONFIG.CANT_WORKER.value}, Subida={CONFIG.UPLOAD_WORKER.value}")
+    CONFIG.LOGGER.value.info(
+        f"Bot y Userbot activos. Workers: Descarga={CONFIG.CANT_WORKER.value}, Subida={CONFIG.UPLOAD_WORKER.value}"
+    )
 
-    app.run()
+    compose([app, userbot_app])
 
 
 if __name__ == "__main__":
