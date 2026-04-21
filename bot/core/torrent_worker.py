@@ -25,10 +25,8 @@ def download_torrent(client, loop, source):
         }
 
     if isinstance(params, dict):
-        # Para archivos .torrent (params es dict creado arriba) o versiones antiguas de lt
         handle = ses.add_torrent(params)
     else:
-        # Para magnet (lt.parse_magnet_uri devuelve un add_torrent_params en versiones nuevas)
         params.save_path = CONFIG.DOWNLOAD_DIR.value
         handle = ses.add_torrent(params)
     
@@ -109,7 +107,6 @@ def download_torrent(client, loop, source):
     
     ses.remove_torrent(handle)
     
-    # Si era un archivo .torrent local, limpiarlo
     if not source.startswith("magnet:") and os.path.exists(source):
         try:
             os.remove(source)

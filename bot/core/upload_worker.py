@@ -37,9 +37,8 @@ async def upload_file(client: Client, file_path: str, filename: str, destination
             loop = asyncio.get_event_loop()
             
             async def monitor_split_progress():
-                base_name = file_path + ".7z"
                 dir_path = os.path.dirname(file_path)
-                base_filename = os.path.basename(base_name)
+                base_filename = os.path.basename(file_path)
                 last_size = 0
                 last_time = time.time()
                 
@@ -48,7 +47,7 @@ async def upload_file(client: Client, file_path: str, filename: str, destination
                         current_size = sum(
                             os.path.getsize(os.path.join(dir_path, f)) 
                             for f in os.listdir(dir_path) 
-                            if f.startswith(base_filename)
+                            if f.startswith(base_filename + ".")
                         )
                         active = CONFIG.status_data.value["active"][task_key]
                         active["downloaded"] = current_size
@@ -69,7 +68,7 @@ async def upload_file(client: Client, file_path: str, filename: str, destination
             monitor_task = asyncio.create_task(monitor_split_progress())
             
             try:
-                parts = await loop.run_in_executor(None, split_file, file_path, 1000) # Dividir en 1000MB (1GB) en lugar de 1.9GB
+                parts = await loop.run_in_executor(None, split_file, file_path, 1000) 
             finally:
                 if task_key in CONFIG.status_data.value["active"]:
                     del CONFIG.status_data.value["active"][task_key]

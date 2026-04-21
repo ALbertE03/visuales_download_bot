@@ -17,7 +17,7 @@ if not API_ID or not API_HASH:
     print("Falta el API_ID o API_HASH en los secretos de Streamlit (secrets.toml)")
     exit(1)
 
-# Si hay session_string, usar en memoria. Si no, volver a guardar a nivel local para debug en pc
+
 if SESSION_STRING:
     userbot_app = Client("my_userbot", session_string=SESSION_STRING, api_id=int(API_ID), api_hash=API_HASH, in_memory=True)
 else:
