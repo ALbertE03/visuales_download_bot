@@ -8,6 +8,7 @@ from pyrogram.types import Message
 from bot.config import CONFIG
 from bot.core.upload_worker import upload_file
 from bot.constants import CONSTANTS
+from bot.utils import format_size
 
 active_collections: Dict[int, List[Message]] = {}
 
@@ -47,12 +48,34 @@ async def process_collection(client: Client, message: Message, messages: List[Me
     total_files = len(messages)
     for idx, msg in enumerate(messages, start=1):
         try:
-            await status_msg.edit_text(CONSTANTS.MSG_COLLECTION_DOWNLOADING.format(idx=idx, total=total_files))
+            prefix_text = CONSTANTS.MSG_COLLECTION_DOWNLOADING.format(idx=idx, total=total_files)
+            
+            last_edit_time = 0.0
+            async def dl_progress(current: int, total: int):
+                nonlocal last_edit_time
+                now = time.time()
+                if now - last_edit_time >= 2.0 or current == total:
+                    last_edit_time = now
+                    if total > 0:
+                        percent = (current / total) * 100
+                        filled = int(percent / 5)
+                        bar = "█" * filled + "▒" * (20 - filled)
+                        txt = f"{prefix_text}\n<code>[{bar}] {percent:.1f}%</code>\n<code>{format_size(current)}</code> de <code>{format_size(total)}</code>"
+                    else:
+                        txt = f"{prefix_text}\n<code>{format_size(current)}</code> descargados..."
+                        
+                    try:
+                        await status_msg.edit_text(txt)
+                    except Exception:
+                        pass
+                        
+            await status_msg.edit_text(prefix_text)
 
             save_path = os.path.join(work_dir, f"{idx}_")
             file_path = await client.download_media(
                 msg, 
-                file_name=save_path
+                file_name=save_path,
+                progress=dl_progress
             )
             if file_path:
                 downloaded_files.append(file_path)
