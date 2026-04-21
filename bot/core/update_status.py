@@ -1,23 +1,32 @@
 import asyncio
+import time
 from bot.config import CONFIG 
 from bot.utils import format_size, format_time
 from bot.constants import CONSTANTS
 from pyrogram import Client
 
+START_TIME = time.time()
+
 async def update_status_message(client: Client) -> None:
     """Actualiza el mensaje de estado en Telegram."""
     last_text = ""
+    last_message_id = None
+    
     while True:
         try:
-            if CONFIG.status_data.value["status_message"]:
+            current_status_msg = CONFIG.status_data.value.get("status_message")
+            if current_status_msg:
                 lines = [CONSTANTS.PANEL_HEADER]
                 active_list = list(CONFIG.status_data.value["active"].values())
+                queue_count = CONFIG.status_data.value['total_in_queue']
+                
+                lines.append(CONSTANTS.PANEL_ACTIVE_TASKS_HEADER.format(active_count=len(active_list)))
                 
                 if not active_list:
-                    if CONFIG.status_data.value["total_in_queue"] > 0:
+                    if queue_count > 0:
                         lines.append(CONSTANTS.STATUS_WAITING)
                     else:
-                        lines.append(CONSTANTS.STATUS_NO_TASKS)
+                        lines.append(CONSTANTS.PANEL_NO_TASKS)
                 else:
                     for data in active_list:
                         speed = data.get("speed", 0)
@@ -28,48 +37,62 @@ async def update_status_message(client: Client) -> None:
                         progress = data.get("progress", 0.0)
                         status_info = data.get("status", "")
                         
-                        filled = int(progress / 10)
-                        bar = "▰" * filled + "▱" * (10 - filled)
+                        filled = int(progress / 6.25)
+                        bar = "█" * filled + "▒" * (16 - filled)
                         
                         task_type_map = {
                             "download": CONSTANTS.TYPE_DOWNLOAD,
                             "upload": CONSTANTS.TYPE_UPLOAD,
                             "torrent": CONSTANTS.TYPE_TORRENT,
-                            "split": "DIVIDIENDO"
+                            "split": "COMPRESIÓN ZIP"
                         }
                         task_type = task_type_map.get(data.get("type", ""), data.get("type", CONSTANTS.TYPE_GENERIC))
                         
-                        lines.append(CONSTANTS.PANEL_TASK_HEADER.format(task_type=task_type))
-                        lines.append(CONSTANTS.PANEL_FILENAME.format(filename=data['filename']))
-                        if status_info:
-                            lines.append(CONSTANTS.PANEL_STATUS.format(status=status_info))
-                        lines.append(CONSTANTS.PANEL_PROGRESS_BAR.format(bar=bar, progress=progress))
-                        
-                        eta_val = CONSTANTS.STATUS_CALCULATING
+                        eta_val = "--"
                         if speed > 0 and total > 0:
-                            remaining = total - data.get("downloaded", 0)
+                            remaining = max(0, total - data.get("downloaded", 0))
                             eta_val = format_time(remaining / speed)
-                        
-                        lines.append(CONSTANTS.PANEL_UP_TO_DATE.format(downloaded=downloaded_fmt, total=total_fmt))
-                        
-                        if data.get("type") == "split":
-                            lines.append(f"Velocidad Compresión: {speed_fmt}")
-                        else:
-                            lines.append(CONSTANTS.PANEL_SPEED.format(speed=speed_fmt))
+                        elif total == 0:
+                            eta_val = "Calculando..."
                             
-                        lines.append(CONSTANTS.PANEL_ETA.format(eta=eta_val))
+                        task_str = CONSTANTS.PANEL_TASK_ITEM.format(
+                            task_type=task_type,
+                            filename=data['filename'],
+                            bar=bar,
+                            progress=progress,
+                            downloaded=downloaded_fmt,
+                            total=total_fmt,
+                            speed=speed_fmt,
+                            eta=eta_val
+                        )
+                        
+                        if status_info:
+                            task_str = task_str.replace("</blockquote>", f"<b>Extra:</b> <i>{status_info}</i>\n</blockquote>")
+                            
+                        lines.append(task_str)
                 
-                lines.append(CONSTANTS.PANEL_DIVIDER)
-                lines.append(CONSTANTS.PANEL_COMPLETED.format(completed=CONFIG.status_data.value['completed']))
-                lines.append(CONSTANTS.PANEL_FAILED.format(failed=CONFIG.status_data.value['failed']))
-                lines.append(CONSTANTS.PANEL_QUEUE.format(queue=CONFIG.status_data.value['total_in_queue']))
+                uptime_str = format_time(time.time() - START_TIME)
+                completed = CONFIG.status_data.value['completed']
+                failed = CONFIG.status_data.value['failed']
+                
+                lines.append(CONSTANTS.PANEL_GLOBAL_HEADER)
+                lines.append(CONSTANTS.PANEL_GLOBAL_STATS.format(
+                    uptime=uptime_str,
+                    completed=completed,
+                    failed=failed,
+                    queue=queue_count
+                ))
                 
                 txt = "\n".join(lines)
                 
-                if txt != last_text:
+             
+                force_update = CONFIG.status_data.value.pop("force_status_update", False)
+                
+                if txt != last_text or current_status_msg.id != last_message_id or force_update:
                     try:
-                        await CONFIG.status_data.value["status_message"].edit_text(txt)
+                        await current_status_msg.edit_text(txt)
                         last_text = txt
+                        last_message_id = current_status_msg.id
                     except Exception as e:
                         if "MESSAGE_ID_INVALID" in str(e) or "MESSAGE_NOT_MODIFIED" not in str(e):
                             pass

@@ -18,4 +18,5 @@ async def start_handler(client: Client, message: Message) -> None:
 
 async def status_handler(client: Client, message: Message) -> None:
     msg = await message.reply(CONSTANTS.MSG_GETTING_STATUS)
+    CONFIG.status_data.value["force_status_update"] = True
     CONFIG.status_data.value["status_message"] = msg

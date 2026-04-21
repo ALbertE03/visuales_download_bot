@@ -56,18 +56,12 @@ class CONSTANTS:
     TYPE_GENERIC = "TAREA"
     
     # UI Panel 
-    PANEL_HEADER = "<b>[ PANEL DE CONTROL ]</b>\n"
-    PANEL_TASK_HEADER = "<blockquote><b>== {task_type} ==</b></blockquote>"
-    PANEL_FILENAME = "<b>Archivo:</b> <code>{filename}</code>"
-    PANEL_STATUS = "<b>Estado:</b> <i>{status}</i>"
-    PANEL_SPEED = "<b>Velocidad:</b> <code>{speed}</code>"
-    PANEL_ETA = "<b>Restante:</b> <code>{eta}</code>\n"
-    PANEL_PROGRESS_BAR = "<code>[{bar}] {progress:.1f}%</code>"
-    PANEL_COMPLETED = "<b>Completados:</b> <code>{completed}</code>"
-    PANEL_FAILED = "<b>Fallidos:</b> <code>{failed}</code>"
-    PANEL_QUEUE = "<b>En Cola:</b> <code>{queue}</code>"
-    PANEL_DIVIDER = "⎯" * 15
-    PANEL_UP_TO_DATE = "<code>{downloaded}</code> de <code>{total}</code>"
+    PANEL_HEADER = "<b>[ PANEL DE CONTROL DEL SISTEMA ]</b>\n"
+    PANEL_ACTIVE_TASKS_HEADER = "<b>⎯⎯ TAREAS ACTIVAS ({active_count}) ⎯⎯</b>"
+    PANEL_NO_TASKS = "<blockquote><i>Sistema inactivo. Esperando nuevas peticiones.</i></blockquote>\n"
+    PANEL_TASK_ITEM = "<blockquote><b>Fase:</b> <code>{task_type}</code>\n<b>Archivo:</b> <code>{filename}</code>\n<b>Avance:</b> <code>[{bar}] {progress:.1f}%</code>\n<b>Datos:</b> <code>{downloaded}</code> de <code>{total}</code>\n<b>Ritmo:</b> <code>{speed}</code> | <b>ETA:</b> <code>{eta}</code></blockquote>"
+    PANEL_GLOBAL_HEADER = "<b>⎯⎯ METRICAS GLOBALES ⎯⎯</b>"
+    PANEL_GLOBAL_STATS = "<blockquote><b>Tiempo Activo:</b> <code>{uptime}</code>\n<b>Completados:</b> <code>{completed}</code> | <b>Fallidos:</b> <code>{failed}</code>\n<b>Archivos en Espera (Cola):</b> <code>{queue}</code></blockquote>"
     
     # Mensajes de Log y otros (Consola)
     LOG_DOWNLOADING = "Descargando {filename} desde {url}..."
