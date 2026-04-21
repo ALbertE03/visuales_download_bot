@@ -12,7 +12,6 @@ from bot.commands.download import download_handler
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
 from userbot.main import userbot_app
-from pyrogram import compose
 
 def setup_bots():
     CONFIG.LOGGER.value.info("Configurando Bots...")
