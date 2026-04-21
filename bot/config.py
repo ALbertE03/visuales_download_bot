@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+import streamlit as st
 import queue
 import asyncio
 from typing import Dict, Any
@@ -7,18 +7,14 @@ from enum import Enum
 from bot.log import logger
 from bot.constants import CONSTANTS
 
-
-load_dotenv()
-
-
 class CONFIG(Enum):
     LOGGER = logger
-    API_ID: int = int(os.getenv("API_ID", "0"))
-    API_HASH: str = os.getenv("API_HASH", "")
-    TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
-    TARGET_GROUP: str = os.getenv("TARGET_GROUP", "")
+    API_ID: int = int(st.secrets.get("API_ID", 0))
+    API_HASH: str = st.secrets.get("API_HASH", "")
+    TOKEN: str = st.secrets.get("TELEGRAM_BOT_TOKEN", "")
+    TARGET_GROUP: str = st.secrets.get("TARGET_GROUP", "")
 
-    BASE_URL: str = os.getenv("BASE_URL", "https://visuales.uclv.cu/")
+    BASE_URL: str = st.secrets.get("BASE_URL", "https://visuales.uclv.cu/")
     DOWNLOAD_DIR: str = CONSTANTS.DOWNLOAD_DIR
     PROCESSED_DB: str = CONSTANTS.PROCESSED_DB
     EXPLORER_CACHE_DB: str = CONSTANTS.EXPLORER_CACHE_DB

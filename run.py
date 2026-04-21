@@ -11,12 +11,11 @@ from bot.commands.visuales import down_handler
 from bot.commands.download import download_handler
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
-from pyrogram import compose
 from userbot.main import userbot_app
+from pyrogram import compose
 
-
-def main():
-    CONFIG.LOGGER.value.info("Iniciando Bot...")
+def setup_bots():
+    CONFIG.LOGGER.value.info("Configurando Bots...")
 
     try:
         loop = asyncio.get_event_loop()
@@ -62,8 +61,17 @@ def main():
         f"Bot y Userbot activos. Workers: Descarga={CONFIG.CANT_WORKER.value}, Subida={CONFIG.UPLOAD_WORKER.value}"
     )
 
-    compose([app, userbot_app])
+    def run_loop():
+        asyncio.set_event_loop(loop)
+        
+        async def start_clients():
+            await app.start()
+            await userbot_app.start()
+            
+        loop.run_until_complete(start_clients())
+        loop.run_forever()
 
+    Thread(target=run_loop, daemon=True).start()
+    
+    return app, userbot_app
 
-if __name__ == "__main__":
-    main()

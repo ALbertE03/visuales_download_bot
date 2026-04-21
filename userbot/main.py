@@ -2,20 +2,18 @@ import os
 import asyncio
 import requests
 import urllib.parse
-from dotenv import load_dotenv
+import streamlit as st
 from pyrogram import Client, filters
 from pyrogram.errors import MessageNotModified
 from pyrogram.types import Message
 from bot.log import logger
 
-load_dotenv()
-
-API_ID = os.getenv("API_ID")
-API_HASH = os.getenv("API_HASH")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+API_ID = st.secrets.get("API_ID")
+API_HASH = st.secrets.get("API_HASH")
+GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
 
 if not API_ID or not API_HASH:
-    print("Falta el API_ID o API_HASH en el archivo .env")
+    print("Falta el API_ID o API_HASH en los secretos de Streamlit (secrets.toml)")
     exit(1)
 
 userbot_app = Client(
