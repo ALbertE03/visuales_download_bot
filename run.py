@@ -64,6 +64,26 @@ def setup_bots():
     def run_loop():
         asyncio.set_event_loop(loop)
         
+        # Mantener referencias a las tareas para evitar el error de recolección de basura (Task was destroyed but it is pending) en Python 3.11+
+        background_tasks = set()
+        original_create_task = asyncio.create_task
+        original_loop_create_task = loop.create_task
+        
+        def create_task_patch(coro, *args, **kwargs):
+            task = original_create_task(coro, *args, **kwargs)
+            background_tasks.add(task)
+            task.add_done_callback(background_tasks.discard)
+            return task
+            
+        def loop_create_task_patch(coro, *args, **kwargs):
+            task = original_loop_create_task(coro, *args, **kwargs)
+            background_tasks.add(task)
+            task.add_done_callback(background_tasks.discard)
+            return task
+            
+        asyncio.create_task = create_task_patch
+        loop.create_task = loop_create_task_patch
+        
         async def start_clients():
             await app.start()
             await userbot_app.start()
