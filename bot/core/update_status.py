@@ -35,8 +35,9 @@ async def update_status_message(client: Client) -> None:
                             "download": CONSTANTS.TYPE_DOWNLOAD,
                             "upload": CONSTANTS.TYPE_UPLOAD,
                             "torrent": CONSTANTS.TYPE_TORRENT,
+                            "split": "DIVIDIENDO"
                         }
-                        task_type = task_type_map.get(data.get("type"), CONSTANTS.TYPE_GENERIC)
+                        task_type = task_type_map.get(data.get("type", ""), data.get("type", CONSTANTS.TYPE_GENERIC))
                         
                         lines.append(CONSTANTS.PANEL_TASK_HEADER.format(task_type=task_type))
                         lines.append(CONSTANTS.PANEL_FILENAME.format(filename=data['filename']))

@@ -23,7 +23,58 @@ async def upload_file(client: Client, file_path: str, filename: str, destination
         file_size = os.path.getsize(file_path)
         if file_size > 2000 * 1024 * 1024:  # > 2GB
             CONFIG.LOGGER.value.info(CONSTANTS.LOG_SPLITTING.format(filename=filename))
-            parts = split_file(file_path)
+            
+            task_key = f"split_{filename}"
+            CONFIG.status_data.value["active"][task_key] = {
+                "filename": filename,
+                "progress": 0.0,
+                "speed": 0.0,
+                "downloaded": 0,
+                "total": file_size,
+                "type": "split"
+            }
+            
+            loop = asyncio.get_event_loop()
+            
+            async def monitor_split_progress():
+                base_name = file_path + ".7z"
+                dir_path = os.path.dirname(file_path)
+                base_filename = os.path.basename(base_name)
+                last_size = 0
+                last_time = time.time()
+                
+                while task_key in CONFIG.status_data.value["active"]:
+                    try:
+                        current_size = sum(
+                            os.path.getsize(os.path.join(dir_path, f)) 
+                            for f in os.listdir(dir_path) 
+                            if f.startswith(base_filename)
+                        )
+                        active = CONFIG.status_data.value["active"][task_key]
+                        active["downloaded"] = current_size
+                        
+                        now = time.time()
+                        elapsed = now - last_time
+                        if elapsed >= 1:
+                            active["speed"] = (current_size - last_size) / elapsed
+                            last_size = current_size
+                            last_time = now
+                            
+                        if active["total"] > 0:
+                            active["progress"] = min(100.0, (current_size / active["total"]) * 100)
+                    except Exception:
+                        pass
+                    await asyncio.sleep(2)
+                    
+            monitor_task = asyncio.create_task(monitor_split_progress())
+            
+            try:
+                parts = await loop.run_in_executor(None, split_file, file_path)
+            finally:
+                if task_key in CONFIG.status_data.value["active"]:
+                    del CONFIG.status_data.value["active"][task_key]
+                monitor_task.cancel()
+                
             for part in parts:
                 await CONFIG.upload_queue.value.put((part, os.path.basename(part), destination_chat_id))
             try:
