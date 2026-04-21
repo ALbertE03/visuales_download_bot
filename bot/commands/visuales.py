@@ -3,8 +3,6 @@ from urllib.parse import urljoin, unquote
 from bs4 import BeautifulSoup
 from pyrogram import Client
 from pyrogram.types import Message
-from pyrogram import Client
-from pyrogram.types import Message
 from bot.config import CONFIG
 from bot.utils import load_processed, load_explorer_cache, save_explorer_cache
 from bot.constants import CONSTANTS

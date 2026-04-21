@@ -37,7 +37,7 @@ def setup_bots():
     app.add_handler(MessageHandler(status_handler, filters.command("status")))
     app.add_handler(
         MessageHandler(
-            download_handler, filters.command(["dl", "yt", "gdrive", "ig", "tw"])
+            download_handler, filters.command("dl")
         )
     )
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
@@ -50,7 +50,7 @@ def setup_bots():
     )
     app.add_handler(MessageHandler(add_handler, filters.command("add")))
     app.add_handler(MessageHandler(end_handler, filters.command("end")))
-    app.add_handler(MessageHandler(collection_monitor_handler, ~filters.command(["add", "end", "start", "main_menu", "status", "dl", "yt", "gdrive", "ig", "tw", "down", "torrent"])), group=1)
+    app.add_handler(MessageHandler(collection_monitor_handler, ~filters.command(["add", "end", "start", "main_menu", "status", "dl", "down", "torrent"])), group=1)
 
     for _ in range(CONFIG.CANT_WORKER.value):
         Thread(target=download_file_worker, args=(app, loop), daemon=True).start()

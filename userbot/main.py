@@ -1,7 +1,6 @@
 import os
 import asyncio
 import requests
-import urllib.parse
 import streamlit as st
 from pyrogram import Client, filters
 from pyrogram.errors import MessageNotModified
