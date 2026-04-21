@@ -67,6 +67,10 @@ def download_torrent(client, loop, source):
         CONFIG.status_data.value["active"][task_key]["progress"] = s.progress * 100
         CONFIG.status_data.value["active"][task_key]["downloaded"] = s.total_done
         CONFIG.status_data.value["active"][task_key]["speed"] = s.download_rate
+        CONFIG.status_data.value["active"][task_key]["seeds"] = s.num_seeds
+        CONFIG.status_data.value["active"][task_key]["peers"] = s.num_peers
+        CONFIG.status_data.value["active"][task_key]["list_seeds"] = s.list_seeds
+        CONFIG.status_data.value["active"][task_key]["list_peers"] = s.list_peers
         
         if task_key not in CONFIG.status_data.value["active"]:
             ses.remove_torrent(handle)

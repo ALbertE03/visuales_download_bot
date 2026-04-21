@@ -66,8 +66,16 @@ async def update_status_message(client: Client) -> None:
                             eta=eta_val
                         )
                         
+                        if data.get("type") == "torrent" and "seeds" in data:
+                            seeds = data["seeds"]
+                            peers = data["peers"]
+                            list_seeds = data.get("list_seeds", 0)
+                            list_peers = data.get("list_peers", 0)
+                            tor_info = f"\n<b>Pares:</b> <code>{peers} ({list_peers})</code> | <b>Semillas:</b> <code>{seeds} ({list_seeds})</code>"
+                            task_str = task_str.replace("</blockquote>", f"{tor_info}</blockquote>")
+
                         if status_info:
-                            task_str = task_str.replace("</blockquote>", f"<b>Extra:</b> <i>{status_info}</i>\n</blockquote>")
+                            task_str = task_str.replace("</blockquote>", f"\n<b>Extra:</b> <code>{status_info}</code></blockquote>")
                             
                         lines.append(task_str)
                 
