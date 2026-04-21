@@ -145,3 +145,11 @@ async def totext_cmd(client: Client, message: Message):
 async def auto_transcribe_private(client: Client, message: Message):
     logger.info(f"Transcripción automática activada en PV: {message.chat.id}")
     await process_transcription(client, message)
+
+@userbot_app.on_message(filters.chat("chat1080p") & filters.regex(r"(?i)#cine"))
+async def cine_filter_handler(client: Client, message: Message):
+    if not message.text and not message.caption:
+        return
+        
+    if not message.photo and not message.document:
+        await message.reply_text("es con una foto")
