@@ -37,6 +37,7 @@ def save_processed(filename: str) -> None:
     data = list(load_processed())
     if filename not in data:
         data.append(filename)
+        os.makedirs(os.path.dirname(CONFIG.PROCESSED_DB.value), exist_ok=True)
         with open(CONFIG.PROCESSED_DB.value, "w") as f: json.dump(data, f)
 
 def load_explorer_cache() -> Dict[str, Any]:
@@ -49,6 +50,7 @@ def load_explorer_cache() -> Dict[str, Any]:
 def save_explorer_cache(url: str, files: list) -> None:
     cache = load_explorer_cache()
     cache[url] = files
+    os.makedirs(os.path.dirname(CONFIG.EXPLORER_CACHE_DB.value), exist_ok=True)
     with open(CONFIG.EXPLORER_CACHE_DB.value, "w") as f: json.dump(cache, f)
 
 

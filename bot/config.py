@@ -12,7 +12,11 @@ class CONFIG(Enum):
     API_ID: int = int(st.secrets.get("API_ID", 0))
     API_HASH: str = st.secrets.get("API_HASH", "")
     TOKEN: str = st.secrets.get("TELEGRAM_BOT_TOKEN", "")
-    TARGET_GROUP: str = st.secrets.get("TARGET_GROUP", "")
+    _target_raw = st.secrets.get("TARGET_GROUP", "")
+    try:
+        TARGET_GROUP = int(_target_raw)
+    except ValueError:
+        TARGET_GROUP = _target_raw
 
     BASE_URL: str = st.secrets.get("BASE_URL", "https://visuales.uclv.cu/")
     DOWNLOAD_DIR: str = CONSTANTS.DOWNLOAD_DIR
