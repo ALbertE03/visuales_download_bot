@@ -9,6 +9,7 @@ from bot.commands.general import start_handler, main_menu_handler, status_handle
 from bot.commands.torrents import torrent_handler
 from bot.commands.visuales import down_handler
 from bot.commands.download import download_handler
+from bot.commands.collection import add_handler, end_handler, collection_monitor_handler
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
 from userbot.main import userbot_app
@@ -47,6 +48,9 @@ def setup_bots():
             | (filters.document & filters.regex(r".*\.torrent$")),
         )
     )
+    app.add_handler(MessageHandler(add_handler, filters.command("add")))
+    app.add_handler(MessageHandler(end_handler, filters.command("end")))
+    app.add_handler(MessageHandler(collection_monitor_handler, ~filters.command(["add", "end", "start", "main_menu", "status", "dl", "yt", "gdrive", "ig", "tw", "down", "torrent"])), group=1)
 
     for _ in range(CONFIG.CANT_WORKER.value):
         Thread(target=download_file_worker, args=(app, loop), daemon=True).start()

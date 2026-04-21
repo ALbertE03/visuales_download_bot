@@ -11,32 +11,36 @@ class CONSTANTS:
     VIDEO_FORMATS = ('.mp4', '.mkv', '.avi', '.mpg', '.dat', '.wmv', '.mov', '.mpeg')
     
     # Mensajes de Telegram
-    MSG_CMD_DOWNLOAD_USAGE = "Uso: /dl <url>"
+    MSG_CMD_DOWNLOAD_USAGE = "<blockquote><b>Uso:</b> <code>/dl &lt;url&gt;</code></blockquote>"
     
-    MSG_ANALYZING = "Analizando enlace..."
-    MSG_DOWNLOADING = "Descargando..."
-    MSG_UPLOADING = "Subiendo a Telegram..."
-    MSG_INVALID_LINK = "Enlace no válido o no soportado."
-    MSG_ERROR_OCCURRED = "Ocurrió un error: {error_msg}"
+    MSG_ANALYZING = "<blockquote><i>Analizando enlace...</i></blockquote>"
+    MSG_DOWNLOADING = "<blockquote><i>Descargando...</i></blockquote>"
+    MSG_UPLOADING = "<blockquote><i>Subiendo a Telegram...</i></blockquote>"
+    MSG_INVALID_LINK = "<blockquote><b>Error:</b> Enlace no válido o no soportado.</blockquote>"
+    MSG_ERROR_OCCURRED = "<blockquote><b>Ocurrió un error:</b>\n<pre>{error_msg}</pre></blockquote>"
     
     # Mensajes de Comandos y Bot
-    MSG_NO_PROVIDER = "No se encontró un proveedor para manejar esta URL."
-    MSG_INVALID_MAGNET = "Enlace magnet inválido."
-    MSG_INVALID_TORRENT_FILE = "Archivo .torrent inválido o no soportado."
-    MSG_CHOOSE_OPTION = "Elige una opcion:"
+    MSG_NO_PROVIDER = "<blockquote><b>Aviso:</b> No se encontró un administrador para manejar este enlace.</blockquote>"
+    MSG_INVALID_MAGNET = "<blockquote><b>Error:</b> Enlace magnet inválido.</blockquote>"
+    MSG_INVALID_TORRENT_FILE = "<blockquote><b>Error:</b> Archivo .torrent inválido o no soportado.</blockquote>"
+    MSG_CHOOSE_OPTION = "<blockquote><b>Opciones principales:</b></blockquote>"
     MSG_START_BUTTON = "Comenzar"
     MSG_SETTINGS_BUTTON = "Ajustes"
     
     MSG_HELP = (
-        "Comandos disponibles:\n"
-        " - /down <ruta> - Descarga desde Visuales UCLV\n"
-        " - /yt <url> - Descarga desde YouTube\n"
-        " - /ig <url> - Descarga desde Instagram\n"
-        " - /tw <url> - Descarga desde Twitter (X)\n"
-        " - /gdrive <url> - Descarga desde Google Drive\n"
-        " - /torrent <magnet_link> - Descarga un torrent (Magnet)\n"
-        " - También puedes enviar un archivo .torrent directamente.\n"
-        " - /status - Panel de Control"
+        "<b>Comandos Disponibles:</b>\n"
+        "<blockquote>"
+        "<code>/down &lt;ruta&gt;</code> - Descarga desde Visuales UCLV\n"
+        "<code>/yt &lt;url&gt;</code> - YouTube\n"
+        "<code>/ig &lt;url&gt;</code> - Instagram\n"
+        "<code>/tw &lt;url&gt;</code> - Twitter (X)\n"
+        "<code>/gdrive &lt;url&gt;</code> - Google Drive\n"
+        "<code>/torrent &lt;magnet&gt;</code> - Torrent via magnet\n"
+        "<code>/add</code> - Inicia recolección de archivos (Zip)\n"
+        "<code>/end</code> - Finaliza recolección\n"
+        "<code>/status</code> - Abre el Panel de Control"
+        "</blockquote>\n"
+        "<i>Nota: También puedes enviar un archivo .torrent directamente.</i>"
     )
     
     # Mensajes de Estado en Panel
@@ -51,21 +55,21 @@ class CONSTANTS:
     TYPE_TORRENT = "TORRENT"
     TYPE_GENERIC = "TAREA"
     
-    # UI Panel
-    PANEL_HEADER = "[ PANEL DE CONTROL ]\n"
-    PANEL_TASK_HEADER = "== {task_type} =="
-    PANEL_FILENAME = "Archivo: {filename}"
-    PANEL_STATUS = "Estado: {status}"
-    PANEL_SPEED = "Velocidad: {speed}"
-    PANEL_ETA = "Restante: {eta}\n"
-    PANEL_PROGRESS_BAR = "[{bar}] {progress:.1f}%"
-    PANEL_COMPLETED = "Completados: {completed}"
-    PANEL_FAILED = "Fallidos: {failed}"
-    PANEL_QUEUE = "En Cola: {queue}"
-    PANEL_DIVIDER = "-" * 15
-    PANEL_UP_TO_DATE = "{downloaded} de {total}"
+    # UI Panel 
+    PANEL_HEADER = "<b>[ PANEL DE CONTROL ]</b>\n"
+    PANEL_TASK_HEADER = "<blockquote><b>== {task_type} ==</b></blockquote>"
+    PANEL_FILENAME = "<b>Archivo:</b> <code>{filename}</code>"
+    PANEL_STATUS = "<b>Estado:</b> <i>{status}</i>"
+    PANEL_SPEED = "<b>Velocidad:</b> <code>{speed}</code>"
+    PANEL_ETA = "<b>Restante:</b> <code>{eta}</code>\n"
+    PANEL_PROGRESS_BAR = "<code>[{bar}] {progress:.1f}%</code>"
+    PANEL_COMPLETED = "<b>Completados:</b> <code>{completed}</code>"
+    PANEL_FAILED = "<b>Fallidos:</b> <code>{failed}</code>"
+    PANEL_QUEUE = "<b>En Cola:</b> <code>{queue}</code>"
+    PANEL_DIVIDER = "⎯" * 15
+    PANEL_UP_TO_DATE = "<code>{downloaded}</code> de <code>{total}</code>"
     
-    # Mensajes de Log y otros
+    # Mensajes de Log y otros (Consola)
     LOG_DOWNLOADING = "Descargando {filename} desde {url}..."
     LOG_UPLOADING = "Subiendo {filename} ({size}) a {target}..."
     LOG_UPLOAD_SUCCESS = "Finalizado: {filename} enviado con exito."
@@ -76,12 +80,14 @@ class CONSTANTS:
     LOG_UPLOAD_WORKER_ERROR = "Error en worker de subida: {error}"
     LOG_STATUS_LOOP_ERROR = "Error en bucle de status: {error}"
     LOG_ERROR_DOWNLOADING = "Error descargando {filename}: {error}"
-    MSG_ADDED_QUEUE = "Añadido a la cola: {filename}"
-    MSG_ADDED_TORRENT_QUEUE = "Añadido a la cola de torrents."
-    MSG_GET_TORRENT_FILE_OK = "Archivo .torrent descargado con éxito."
-    MSG_GETTING_STATUS = "Obteniendo estado..."
     
-    # Logs Adicionales
+    # Avisos en Chat sobre Cola (Con formato blockquote)
+    MSG_ADDED_QUEUE = "<blockquote><b>Aviso:</b> <code>{filename}</code> fue añadido a la cola.</blockquote>"
+    MSG_ADDED_TORRENT_QUEUE = "<blockquote><b>Aviso:</b> Añadido a la cola de torrents.</blockquote>"
+    MSG_GET_TORRENT_FILE_OK = "<blockquote><b>Éxito:</b> Archivo .torrent procesado.</blockquote>"
+    MSG_GETTING_STATUS = "<i>Actualizando estado...</i>"
+    
+    # Logs Adicionales (Consola)
     LOG_TORRENT_START = "Iniciando descarga de torrent: {filename}"
     LOG_TORRENT_FINISHED = "Torrent {filename} descargado completamente."
     LOG_TORRENT_FOLDER = "Torrent {filename} es una carpeta, filtrando videos para subir..."
@@ -95,31 +101,55 @@ class CONSTANTS:
     LOG_SPLITTING = "Archivo {filename} es mayor a 2GB, dividiendo..."
     
     # Mensajes de Error y Excepciones
-    ERR_NO_GDRIVE_ID = "ID de Google Drive no encontrado."
-    ERR_FILE_NOT_FOUND = "Error: El archivo no existe: {path}"
+    ERR_NO_GDRIVE_ID = "<blockquote><b>Error:</b> ID de Google Drive no encontrado.</blockquote>"
+    ERR_FILE_NOT_FOUND = "<blockquote><b>Error:</b> El archivo no existe: <code>{path}</code></blockquote>"
     
     # Tipos de Tareas (Keys)
     TASK_TYPE_DOWNLOAD = "download"
     TASK_TYPE_UPLOAD = "upload"
     TASK_TYPE_TORRENT = "torrent"
+    
     #torrent 
-    MSG_CMD_TORRENT_USAGE = "Uso: /torrent <magnet_link>"
+    MSG_CMD_TORRENT_USAGE = "<blockquote><b>Uso:</b> <code>/torrent &lt;magnet_link&gt;</code></blockquote>"
+    
     # Mensajes para Visuales UCLV
-    MSG_CMD_VISUALES_USAGE = "Uso: /down <Path>"
-    MSG_SEARCHING_VISUALES = "Buscando archivos en:\n{url}"
-    MSG_CACHE_COMPLETE = "Caché completo cargado.\nAnadidos: {found}\nOmitidos: {skipped}"
-    MSG_CACHE_PARTIAL = "Cache parcial: {found_total} archivos.\nBuscando el resto en la web..."
-    MSG_SCAN_PARTIAL = "Escaneando parcial...\n({i}/{total} carpetas)\nEncontrados nuevos: {found}\nOmitidos/Cache: {skipped}"
-    MSG_SEARCH_FINISHED = "Busqueda finalizada.\nNuevos: {found}\nTotal en carpeta: {total}"
-    MSG_START_TRACKING = "Iniciating tracking..."
-    MSG_START_TRACKING_CACHE = "Iniciating tracking (Cache)..."
-    MSG_PROCESSING = "Procesando..."
-    MSG_FINISHING = "Finalizando..."
+    MSG_CMD_VISUALES_USAGE = "<blockquote><b>Uso:</b> <code>/down &lt;ruta_en_el_servidor&gt;</code></blockquote>"
+    MSG_SEARCHING_VISUALES = "<b>Buscando archivos en:</b>\n<blockquote><code>{url}</code></blockquote>"
+    MSG_CACHE_COMPLETE = "<blockquote><b>Caché completo cargado.</b>\n<b>Añadidos:</b> <code>{found}</code>\n<b>Omitidos:</b> <code>{skipped}</code></blockquote>"
+    MSG_CACHE_PARTIAL = "<blockquote><b>Caché parcial:</b> <code>{found_total}</code> archivos.</blockquote>\n<i>Buscando el resto en la web...</i>"
+    MSG_SCAN_PARTIAL = "<blockquote><b>Escaneando carpetas:</b>\n<code>({i}/{total})</code> carpetas procesadas.\n<b>Nuevos:</b> <code>{found}</code>\n<b>Omitidos:</b> <code>{skipped}</code></blockquote>"
+    MSG_SEARCH_FINISHED = "<blockquote><b>Búsqueda finalizada.</b>\n<b>Nuevos a descargar:</b> <code>{found}</code>\n<b>Total en carpeta:</b> <code>{total}</code></blockquote>"
+    MSG_START_TRACKING = "<i>Iniciando rastreador...</i>"
+    MSG_START_TRACKING_CACHE = "<i>Iniciando rastreador (Caché)...</i>"
+    MSG_PROCESSING = "<i>Procesando datos...</i>"
+    MSG_FINISHING = "<i>Finalizando operaciones...</i>"
+    
+    # Mensajes de Colección (Recolección)
+    MSG_COLLECTION_ALREADY_ACTIVE = "<blockquote><b>Aviso:</b> Ya tienes una recolección activa. Envía <code>/end</code> para terminarla.</blockquote>"
+    MSG_COLLECTION_STARTED = (
+        "<b>Modo Recolección Activado</b>\n"
+        "<blockquote>Envía <b>documentos</b>, <b>audios</b> o <b>videos</b>.\n"
+        "Cuando termines, envía el comando <code>/end</code>.</blockquote>\n"
+        "<i>Nota: Si envías texto u otros formatos, se cancelará.</i>"
+    )
+    MSG_COLLECTION_NOT_ACTIVE = "<blockquote><b>Aviso:</b> No hay recolección activa. Usa <code>/add</code> para iniciar.</blockquote>"
+    MSG_COLLECTION_EMPTY = "<blockquote><b>Aviso:</b> Terminó la recolección, pero no enviaste archivos.</blockquote>"
+    MSG_COLLECTION_START_PACKING = "<blockquote><b>Empaquetando</b> <code>{count}</code> <b>archivos...</b>\n\n<i>Paso 1. Descargando al servidor...</i></blockquote>"
+    MSG_COLLECTION_DOWNLOADING = "<blockquote>Descargando archivo <code>{idx}</code> de <code>{total}</code>...</blockquote>"
+    MSG_COLLECTION_DOWNLOAD_ERROR = "<blockquote><b>Error:</b> Ningún archivo pudo descagarse al servidor.</blockquote>"
+    MSG_COLLECTION_COMPRESSING = "<blockquote><b>Comprimiendo</b> <code>{count}</code> <b>archivos en .zip</b>\n<i>(Nivel de compresión: Máximo)</i></blockquote>"
+    MSG_COLLECTION_ZIP_ERROR = "<blockquote><b>Error:</b> Fallo al intentar crear el archivo comprimido.</blockquote>"
+    MSG_COLLECTION_UPLOAD_QUEUE = "<blockquote><b>Éxito:</b> Archivo comprimido.\n<i>Pasando a la cola de subida...</i></blockquote>"
+    MSG_COLLECTION_FILE_ADDED = "<blockquote><b>Archivo añadido.</b>\nLlevas <code>{count}</code> archivos.</blockquote>"
+    MSG_COLLECTION_CANCELLED = (
+        "<blockquote><b>Modo recolección cancelado.</b>\n"
+        "Has enviado un formato no permitido (solo docs/audios/videos).</blockquote>"
+    )
     
     # Errores Adicionales
-    ERR_NETWORK = "Error de red: El servidor respondio con error {status}"
-    ERR_UNEXPECTED = "Error inesperado: {error}"
-    ERR_FOLDER_SCAN = "Error en carpeta {url}: {error}"
+    ERR_NETWORK = "<blockquote><b>Error de red:</b> El servidor respondió con <code>{status}</code></blockquote>"
+    ERR_UNEXPECTED = "<blockquote><b>Error inesperado:</b>\n<pre>{error}</pre></blockquote>"
+    ERR_FOLDER_SCAN = "<blockquote><b>Error en carpeta</b> <code>{url}</code>:\n<pre>{error}</pre></blockquote>"
     
     # Configuración de Descarga
     YDL_OPTS_DEFAULT = {

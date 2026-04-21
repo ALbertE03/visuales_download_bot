@@ -3,7 +3,7 @@ import os
 import json
 from typing import Set, Dict, Any
 from bot.config import CONFIG
-import py7zr
+import subprocess
 
 def format_size(size_bytes: int) -> str:
     if size_bytes <= 0: return "0 B"
@@ -52,9 +52,6 @@ def save_explorer_cache(url: str, files: list) -> None:
     cache[url] = files
     os.makedirs(os.path.dirname(CONFIG.EXPLORER_CACHE_DB.value), exist_ok=True)
     with open(CONFIG.EXPLORER_CACHE_DB.value, "w") as f: json.dump(cache, f)
-
-
-import subprocess
 
 def split_file(file_path: str, chunk_size_mb: int = 1900) -> list[str]:
     """Divide un archivo en partes generando zip multivolumen para WinRAR usando comandos del sistema."""
