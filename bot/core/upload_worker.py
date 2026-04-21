@@ -47,7 +47,7 @@ async def upload_file(client: Client, file_path: str, filename: str, destination
                         current_size = sum(
                             os.path.getsize(os.path.join(dir_path, f)) 
                             for f in os.listdir(dir_path) 
-                            if f.startswith(base_filename + ".")
+                            if f.startswith(base_filename) and (f.endswith(".zip") or ".z" in f)
                         )
                         active = CONFIG.status_data.value["active"][task_key]
                         active["downloaded"] = current_size
