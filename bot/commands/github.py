@@ -1,7 +1,7 @@
 import asyncio
 import requests
 import streamlit as st
-from pyrogram import Client
+from pyrogram import Client,types
 from pyrogram.types import Message
 
 GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "")
@@ -183,5 +183,7 @@ async def ghcreate_handler(client: Client, message: Message):
         f"✅ <b>Repositorio creado exitosamente!</b>\n"
         f"👤 <b>Dueño:</b> {owner}\n"
         f"📦 <b><a href='{html_url}'>{repo_name}</a></b>",
-        disable_web_page_preview=True
+         link_preview_options=types.LinkPreviewOptions(
+        is_disabled=True 
+    )
     )
