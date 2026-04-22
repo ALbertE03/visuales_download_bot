@@ -46,8 +46,17 @@ def download_torrent(client, loop, source):
 
     CONFIG.status_data.value["active"][task_key]["status"] = CONSTANTS.STATUS_METADATA
 
+    start_time = time.time()
     while not handle.has_metadata():
         time.sleep(1)
+        
+        if time.time() - start_time > 300:
+            CONFIG.LOGGER.value.info(CONSTANTS.LOG_TORRENT_METADATA_TIMEOUT.format(filename=filename))
+            if task_key in CONFIG.status_data.value["active"]:
+                del CONFIG.status_data.value["active"][task_key]
+            ses.remove_torrent(handle)
+            return
+
         if task_key not in CONFIG.status_data.value["active"]:
             CONFIG.LOGGER.value.info(CONSTANTS.LOG_TORRENT_EXITING)
             ses.remove_torrent(handle)

@@ -12,6 +12,7 @@ class CONSTANTS:
     
     # Mensajes de Telegram
     MSG_CMD_DOWNLOAD_USAGE = "<blockquote><b>Uso:</b> <code>/dl &lt;url&gt;</code></blockquote>"
+    MSG_CMD_GET_USAGE = "<blockquote><b>Uso:</b> <code>/get &lt;url&gt;</code></blockquote>"
     
     MSG_ANALYZING = "<blockquote><i>Analizando enlace...</i></blockquote>"
     MSG_DOWNLOADING = "<blockquote><i>Descargando...</i></blockquote>"
@@ -32,6 +33,7 @@ class CONSTANTS:
         "<blockquote>"
         "<code>/down &lt;ruta&gt;</code> - Descarga desde Visuales UCLV\n"
         "<code>/dl &lt;url&gt;</code> - YouTube, Instagram, Twitter (X), Google Drive\n"
+        "<code>/get &lt;url&gt;</code> - Enlaces directos de descarga\n"
         "<code>/torrent &lt;magnet&gt;</code> - Torrent via magnet\n"
         "<code>/add</code> - Inicia recolección de archivos (Zip)\n"
         "<code>/end</code> - Finaliza recolección\n"
@@ -83,6 +85,7 @@ class CONSTANTS:
     LOG_TORRENT_FINISHED = "Torrent {filename} descargado completamente."
     LOG_TORRENT_FOLDER = "Torrent {filename} es una carpeta, filtrando videos para subir..."
     LOG_TORRENT_METADATA_WAIT = "Esperando metadata..."
+    LOG_TORRENT_METADATA_TIMEOUT = "Tiempo de espera de metadata agotado para: {filename}"
     LOG_TORRENT_METADATA_OK = "Metadata obtenida"
     LOG_TORRENT_EXITING = "Saliendo del worker de torrent..."
     LOG_SKIP_NON_VIDEO = "Omitiendo archivo no video: {file}"

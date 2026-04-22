@@ -20,3 +20,18 @@ async def download_handler(client: Client, message: Message) -> None:
     
     CONFIG.download_queue.value.put((url, filename, 0))
     await message.reply(CONSTANTS.MSG_ADDED_QUEUE.format(filename=filename))
+
+async def get_handler(client: Client, message: Message) -> None:
+    if len(message.command) < 2:
+        await message.reply(CONSTANTS.MSG_CMD_GET_USAGE)
+        return
+    
+    url = message.text.split(None, 1)[1].strip()
+    
+    # Extraer nombre del archivo de la URL
+    filename = url.split('/')[-1] or "direct_file"
+    if '?' in filename:
+        filename = filename.split('?')[0]
+        
+    CONFIG.download_queue.value.put((url, filename, 0))
+    await message.reply(CONSTANTS.MSG_ADDED_QUEUE.format(filename=filename))
