@@ -6,6 +6,12 @@ from bot.core.download_worker import download_file_worker
 from bot.core.upload_worker import upload_worker
 from bot.core.update_status import update_status_message
 from bot.commands.general import start_handler, main_menu_handler, status_handler
+from bot.commands.github import (
+    ghuser_handler,
+    ghrepo_handler,
+    ghsearch_handler,
+    ghcreate_handler
+)
 from bot.commands.torrents import torrent_handler
 from bot.commands.visuales import down_handler
 from bot.commands.download import download_handler
@@ -35,6 +41,10 @@ def setup_bots():
     app.add_handler(MessageHandler(start_handler, filters.command("start")))
     app.add_handler(MessageHandler(main_menu_handler, filters.command("main_menu")))
     app.add_handler(MessageHandler(status_handler, filters.command("status")))
+    app.add_handler(MessageHandler(ghuser_handler, filters.command("ghuser")))
+    app.add_handler(MessageHandler(ghrepo_handler, filters.command("ghrepo")))
+    app.add_handler(MessageHandler(ghsearch_handler, filters.command("ghsearch")))
+    app.add_handler(MessageHandler(ghcreate_handler, filters.command("ghcreate")))
     app.add_handler(
         MessageHandler(
             download_handler, filters.command("dl")
