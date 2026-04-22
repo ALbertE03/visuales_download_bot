@@ -201,7 +201,7 @@ async def imagine_cmd(client: Client, message: Message):
 
 
 
-@userbot_app.on_message(filters.chat("chat1080p") & filters.regex(r"(?i)#cine"))
+@userbot_app.on_message(filters.chat("chat1080p") & filters.regex(r"(?i)^#cine") & ~filters.me)
 async def cine_filter_handler(client: Client, message: Message):
 
     if message.id in processed_cine_msgs:
