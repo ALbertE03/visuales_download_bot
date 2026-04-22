@@ -1,6 +1,6 @@
 import asyncio
 from threading import Thread
-from pyrogram import Client
+from pyrogram import Client, types
 from bot.config import CONFIG
 from bot.core.download_worker import download_file_worker
 from bot.core.upload_worker import upload_worker
@@ -19,6 +19,35 @@ from bot.commands.collection import add_handler, end_handler, collection_monitor
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
 from userbot.main import userbot_app
+
+async def setup_bot_commands(app: Client):
+    """
+    Configura el menú de comandos que aparece en la parte inferior del chat
+    """
+    commands = [
+        types.BotCommand("start", "Iniciar el bot y ver información básica"),
+        types.BotCommand("main_menu", "Mostrar el menú principal de opciones"),
+        types.BotCommand("status", "Ver estado del sistema y progreso actual"),
+        types.BotCommand("dl", "Descargar contenido desde enlace directo"),
+        types.BotCommand("down", "Descargar contenido (método alternativo)"),
+        types.BotCommand("torrent", "Descargar desde enlace torrent o archivo .torrent"),
+        types.BotCommand("add", "Agregar elementos a la colección"),
+        types.BotCommand("end", "Finalizar la colección actual"),
+        types.BotCommand("ghuser", "Buscar información de usuario de GitHub"),
+        types.BotCommand("ghrepo", "Buscar información de repositorio de GitHub"),
+        types.BotCommand("ghsearch", "Realizar búsqueda general en GitHub"),
+        types.BotCommand("ghcreate", "Crear un nuevo repositorio en GitHub"),
+    ]
+    
+    try:
+
+        await app.set_bot_commands(
+            commands, 
+            scope=types.BotCommandScopeAllPrivateChats()
+        )
+        CONFIG.LOGGER.value.info(f"Menú de comandos configurado con {len(commands)} comandos")
+    except Exception as e:
+        CONFIG.LOGGER.value.error(f"Error al configurar menú de comandos: {e}")
 
 def setup_bots():
     CONFIG.LOGGER.value.info("Configurando Bots...")
@@ -61,7 +90,7 @@ def setup_bots():
     app.add_handler(MessageHandler(add_handler, filters.command("add")))
     app.add_handler(MessageHandler(end_handler, filters.command("end")))
     app.add_handler(MessageHandler(collection_monitor_handler, ~filters.command(["add", "end", "start", "main_menu", "status", "dl", "down", "torrent"])), group=1)
-
+    
     for _ in range(CONFIG.CANT_WORKER.value):
         Thread(target=download_file_worker, args=(app, loop), daemon=True).start()
 
@@ -100,10 +129,11 @@ def setup_bots():
             await app.start()
             await userbot_app.start()
             
+            await setup_bot_commands(app)
+            
         loop.run_until_complete(start_clients())
         loop.run_forever()
 
     Thread(target=run_loop, daemon=True).start()
     
     return app, userbot_app
-
