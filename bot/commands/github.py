@@ -78,7 +78,7 @@ async def ghuser_handler(client: Client, message: Message):
         f"👥 <b>Seguidores:</b> {followers} | <b>Siguiendo:</b> {following}\n"
         f"📦 <b>Repos Públicos:</b> {public_repos}"
     )
-    await loading_msg.edit_text(text, disable_web_page_preview=True)
+    await loading_msg.edit_text(text,  link_preview_options=types.LinkPreviewOptions(is_disabled=True ))
 
 
 async def ghrepo_handler(client: Client, message: Message):
@@ -113,7 +113,7 @@ async def ghrepo_handler(client: Client, message: Message):
         f"🍴 <b>Forks:</b> {forks}\n"
         f"🐞 <b>Issues Abiertos:</b> {open_issues}"
     )
-    await loading_msg.edit_text(text, disable_web_page_preview=True)
+    await loading_msg.edit_text(text,  link_preview_options=types.LinkPreviewOptions(is_disabled=True ))
 
 
 async def ghsearch_handler(client: Client, message: Message):
@@ -144,7 +144,7 @@ async def ghsearch_handler(client: Client, message: Message):
         desc = item.get('description') or 'Sin descripción'
         text += f"📝 <i>{desc[:100]}{'...' if len(desc)>100 else ''}</i>\n\n"
 
-    await loading_msg.edit_text(text, disable_web_page_preview=True)
+    await loading_msg.edit_text(text,  link_preview_options=types.LinkPreviewOptions(is_disabled=True ))
 
 
 async def ghcreate_handler(client: Client, message: Message):
