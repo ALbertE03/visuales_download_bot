@@ -8,7 +8,7 @@ from bot.core.update_status import update_status_message
 from bot.commands.general import start_handler, main_menu_handler, status_handler
 from bot.commands.torrents import torrent_handler
 from bot.commands.visuales import down_handler
-from bot.commands.download import download_handler, get_handler
+from bot.commands.download import download_handler
 from bot.commands.collection import add_handler, end_handler, collection_monitor_handler
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
@@ -40,11 +40,6 @@ def setup_bots():
             download_handler, filters.command("dl")
         )
     )
-    app.add_handler(
-        MessageHandler(
-            get_handler, filters.command("get")
-        )
-    )
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
     app.add_handler(
         MessageHandler(
@@ -55,7 +50,7 @@ def setup_bots():
     )
     app.add_handler(MessageHandler(add_handler, filters.command("add")))
     app.add_handler(MessageHandler(end_handler, filters.command("end")))
-    app.add_handler(MessageHandler(collection_monitor_handler, ~filters.command(["add", "end", "start", "main_menu", "status", "dl", "get", "down", "torrent"])), group=1)
+    app.add_handler(MessageHandler(collection_monitor_handler, ~filters.command(["add", "end", "start", "main_menu", "status", "dl", "down", "torrent"])), group=1)
 
     for _ in range(CONFIG.CANT_WORKER.value):
         Thread(target=download_file_worker, args=(app, loop), daemon=True).start()

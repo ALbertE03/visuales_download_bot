@@ -21,9 +21,17 @@ if not API_ID or not API_HASH:
 
 
 if SESSION_STRING:
-    userbot_app = Client("my_userbot", session_string=SESSION_STRING, api_id=int(API_ID), api_hash=API_HASH, in_memory=True)
+    userbot_app = Client(
+        "my_userbot",
+        session_string=SESSION_STRING,
+        api_id=int(API_ID),
+        api_hash=API_HASH,
+        in_memory=True,
+    )
 else:
-    userbot_app = Client("my_userbot", api_id=int(API_ID), api_hash=API_HASH, workdir="userbot")
+    userbot_app = Client(
+        "my_userbot", api_id=int(API_ID), api_hash=API_HASH, workdir="userbot"
+    )
 
 
 def query_hf_api(api_url, payload):
@@ -32,6 +40,7 @@ def query_hf_api(api_url, payload):
         return None
     headers = {"Authorization": f"Bearer {HF_API_KEY}"}
     return requests.post(api_url, headers=headers, json=payload, timeout=120)
+
 
 def translate_to_spanish(text):
     """Traduce texto al español usando la API pública de Google Translate"""
@@ -156,63 +165,76 @@ async def auto_transcribe_private(client: Client, message: Message):
     logger.info(f"Transcripción automática activada en PV: {message.chat.id}")
     await process_transcription(client, message)
 
+
 @userbot_app.on_message(filters.command("img", prefixes="/") & filters.me)
 async def imagine_cmd(client: Client, message: Message):
     if not HF_API_KEY:
         logger.error("Falta configurar HF_API_KEY en los secretos.")
         await message.delete()
         return
-    
+
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
         await message.edit_text("Uso correcto: `/img <describe tu imagen aquí>`")
         return
-    
-    prompt = parts[1]
-    await message.edit_text(f"Generando imagen: <i>{prompt}</i>\nEsto puede tardar un poco...")
 
-    API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
-    
+    prompt = parts[1]
+    await message.edit_text(
+        f"Generando imagen: <i>{prompt}</i>\nEsto puede tardar un poco..."
+    )
+
+    API_URL = (
+        "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
+    )
+
     loop = asyncio.get_event_loop()
     try:
         for attempt in range(2):
-            res = await loop.run_in_executor(None, lambda: query_hf_api(API_URL, {"inputs": prompt}))
-            
+            res = await loop.run_in_executor(
+                None, lambda: query_hf_api(API_URL, {"inputs": prompt})
+            )
+
             if res and res.status_code == 200:
                 img_io = BytesIO(res.content)
                 img_io.name = "image.png"
-                await message.reply_photo(photo=img_io, caption=f"✨ <b>Prompt:</b> {prompt}")
+                await message.reply_photo(
+                    photo=img_io, caption=f"✨ <b>Prompt:</b> {prompt}"
+                )
                 await message.delete()
                 return
             elif res and res.status_code == 503 and attempt == 0:
-                logger.info("Modelo de Hugging Face durmiendo (HTTP 503). Esperando 60 segundos para reintentar...")
+                logger.info(
+                    "Modelo de Hugging Face durmiendo (HTTP 503). Esperando 60 segundos para reintentar..."
+                )
                 await asyncio.sleep(60)
                 continue
-            
-          
+
             err = res.text if res else "No response"
-            logger.error(f"Error generando imagen en HF API ({res.status_code if res else 'Unknown'}): {err}")
+            logger.error(
+                f"Error generando imagen en HF API ({res.status_code if res else 'Unknown'}): {err}"
+            )
             await message.delete()
             return
-            
+
     except Exception as e:
         logger.exception(f"Excepción en el generador de imágenes: {e}")
         await message.delete()
 
 
-
-@userbot_app.on_message(filters.chat("chat1080p") & filters.regex(r"(?i)^#cine") & ~filters.me)
+@userbot_app.on_message(
+    filters.chat("chat1080p") & filters.regex(r"(?i)^#cine") & ~filters.me
+)
 async def cine_filter_handler(client: Client, message: Message):
 
     if message.id in processed_cine_msgs:
         return
     processed_cine_msgs.add(message.id)
-    
+
     if len(processed_cine_msgs) > 500:
         processed_cine_msgs.clear()
-        
+
     if not message.text and not message.caption:
         return
-        
+
     if not message.photo and not message.document:
         await message.reply_text("es con una foto")

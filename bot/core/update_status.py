@@ -4,7 +4,6 @@ from bot.config import CONFIG
 from bot.utils import format_size, format_time
 from bot.constants import CONSTANTS
 from pyrogram import Client
-import streamlit as st
 
 START_TIME = time.time()
 
@@ -96,17 +95,6 @@ async def update_status_message(client: Client) -> None:
                 uptime_str = format_time(time.time() - START_TIME)
                 completed = CONFIG.status_data.value["completed"]
                 failed = CONFIG.status_data.value["failed"]
-
-                if current_status_msg.chat.id == st.secrets.get("ADMIN_ID", 0):
-                    lines.append(CONSTANTS.PANEL_GLOBAL_HEADER)
-                    lines.append(
-                        CONSTANTS.PANEL_GLOBAL_STATS.format(
-                            uptime=uptime_str,
-                            completed=completed,
-                            failed=failed,
-                            queue=queue_count,
-                        )
-                    )
 
                 txt = "\n".join(lines)
 

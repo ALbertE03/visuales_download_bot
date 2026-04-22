@@ -12,7 +12,6 @@ class CONSTANTS:
     
     # Mensajes de Telegram
     MSG_CMD_DOWNLOAD_USAGE = "<blockquote><b>Uso:</b> <code>/dl &lt;url&gt;</code></blockquote>"
-    MSG_CMD_GET_USAGE = "<blockquote><b>Uso:</b> <code>/get &lt;url&gt;</code></blockquote>"
     
     MSG_ANALYZING = "<blockquote><i>Analizando enlace...</i></blockquote>"
     MSG_DOWNLOADING = "<blockquote><i>Descargando...</i></blockquote>"
@@ -33,7 +32,6 @@ class CONSTANTS:
         "<blockquote>"
         "<code>/down &lt;ruta&gt;</code> - Descarga desde Visuales UCLV\n"
         "<code>/dl &lt;url&gt;</code> - YouTube, Instagram, Twitter (X), Google Drive\n"
-        "<code>/get &lt;url&gt;</code> - Enlaces directos de descarga\n"
         "<code>/torrent &lt;magnet&gt;</code> - Torrent via magnet\n"
         "<code>/add</code> - Inicia recolección de archivos (Zip)\n"
         "<code>/end</code> - Finaliza recolección\n"

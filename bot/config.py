@@ -7,6 +7,7 @@ from enum import Enum
 from bot.log import logger
 from bot.constants import CONSTANTS
 
+
 class CONFIG(Enum):
     LOGGER = logger
     API_ID: int = int(st.secrets.get("API_ID", 0))
