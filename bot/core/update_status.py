@@ -27,13 +27,25 @@ async def update_status_message(client: Client) -> None:
                     )
                 )
 
+                if CONFIG.status_data.value.get("is_searching", False):
+                    lines.append(
+                        "<blockquote><b>Escaneando:</b> <code>Visuales UCLV</code></blockquote>"
+                    )
+
                 if not active_list:
                     if queue_count > 0:
                         lines.append(CONSTANTS.STATUS_WAITING)
                     else:
                         lines.append(CONSTANTS.PANEL_NO_TASKS)
                 else:
-                    for data in active_list:
+                    MAX_VISIBLE_TASKS = 5
+                    for i, data in enumerate(active_list):
+                        if i >= MAX_VISIBLE_TASKS:
+                            lines.append(
+                                f"<blockquote><i>... y {len(active_list) - i} tareas más activas.</i></blockquote>"
+                            )
+                            break
+
                         speed = data.get("speed", 0)
                         speed_fmt = format_size(speed) + "/s"
                         downloaded_fmt = format_size(data.get("downloaded", 0))
@@ -96,6 +108,17 @@ async def update_status_message(client: Client) -> None:
                 completed = CONFIG.status_data.value["completed"]
                 failed = CONFIG.status_data.value["failed"]
 
+                # Agregar métricas globales al final
+                lines.append(CONSTANTS.PANEL_GLOBAL_HEADER)
+                lines.append(
+                    CONSTANTS.PANEL_GLOBAL_STATS.format(
+                        uptime=uptime_str,
+                        completed=completed,
+                        failed=failed,
+                        queue=queue_count,
+                    )
+                )
+
                 txt = "\n".join(lines)
 
                 force_update = CONFIG.status_data.value.pop(
@@ -112,10 +135,13 @@ async def update_status_message(client: Client) -> None:
                         last_text = txt
                         last_message_id = current_status_msg.id
                     except Exception as e:
-                        if "MESSAGE_ID_INVALID" in str(
-                            e
-                        ) or "MESSAGE_NOT_MODIFIED" not in str(e):
-                            pass
+                        error_str = str(e)
+                        if "MESSAGE_ID_INVALID" in error_str:
+                            CONFIG.status_data.value["status_message"] = None
+                        elif "MESSAGE_NOT_MODIFIED" not in error_str:
+                            CONFIG.LOGGER.value.warning(
+                                f"Error actualizando status: {e}"
+                            )
 
             await asyncio.sleep(4)
         except Exception as e:

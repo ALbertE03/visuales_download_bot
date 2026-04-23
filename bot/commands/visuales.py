@@ -7,6 +7,17 @@ from bot.config import CONFIG
 from bot.utils import load_processed, load_explorer_cache, save_explorer_cache
 from bot.constants import CONSTANTS
 
+async def fetch_url(url, timeout=120):
+    """Realiza una petición GET de forma no bloqueante."""
+    loop = asyncio.get_event_loop()
+    try:
+        response = await loop.run_in_executor(None, lambda: requests.get(url, timeout=timeout))
+        response.raise_for_status()
+        return response
+    except Exception as e:
+        CONFIG.LOGGER.value.error(f"Error en fetch_url ({url}): {e}")
+        raise
+
 async def down_handler(client: Client, message: Message) -> None:
     if len(message.command) < 2:
         await message.reply(CONSTANTS.MSG_CMD_VISUALES_USAGE)
@@ -18,122 +29,115 @@ async def down_handler(client: Client, message: Message) -> None:
     status_msg = await message.reply(CONSTANTS.MSG_SEARCHING_VISUALES.format(url=target_url))
     CONFIG.status_data.value["is_searching"] = True
     
-    persistent_cache = load_explorer_cache()
-    cached_entry = persistent_cache.get(target_url, {"files": [], "completed": False})
-    
-    if isinstance(cached_entry, list):
-      
-        is_already_populated = len(cached_entry) > 0
-        cached_entry = {"files": cached_entry, "completed": is_already_populated}
-        save_explorer_cache(target_url, cached_entry)
-        
-    cached_files = cached_entry.get("files", [])
-    is_completed = cached_entry.get("completed", False)
-    
-    already_scanned_urls = {item[0] for item in cached_files}
-    
-    processed = load_processed()
-    found = 0
-    skipped = 0
-    
-    current_cache_list = list(cached_files) 
-
-    for file_url, filename in cached_files:
-        if filename in processed:
-            skipped += 1
-            continue
-        CONFIG.download_queue.value.put((file_url, filename, 0))
-        found += 1
-    
-    if is_completed:
-        CONFIG.status_data.value["is_searching"] = False
-        CONFIG.status_data.value["total_in_queue"] += found
-        if not CONFIG.status_data.value["status_message"]:
-            CONFIG.status_data.value["status_message"] = await message.reply(CONSTANTS.MSG_START_TRACKING_CACHE)
-        await status_msg.edit_text(CONSTANTS.MSG_CACHE_COMPLETE.format(found=found, skipped=skipped))
-        CONFIG.LOGGER.value.info(f"Loaded {found} files from cache for {target_url}")
-        return
-
-    if found > 0 or skipped > 0:
-        await status_msg.edit_text(CONSTANTS.MSG_CACHE_PARTIAL.format(found_total=found+skipped))
-
     try:
-        req = requests.get(target_url, timeout=120)
-        req.raise_for_status()
+        persistent_cache = load_explorer_cache()
+        cached_entry = persistent_cache.get(target_url, {"files": [], "completed": False})
         
-        soup = BeautifulSoup(req.text, "html.parser")
-        links = soup.find_all("a")
-        
-        folder_candidates = []
-        for link in links:
-            href = link.get("href")
-            if not href or href.startswith("?") or "Parent Directory" in link.text:
-                continue
+        if isinstance(cached_entry, list):
+            is_already_populated = len(cached_entry) > 0
+            cached_entry = {"files": cached_entry, "completed": is_already_populated}
+            save_explorer_cache(target_url, cached_entry)
             
-            if href.endswith('/'):                
-                folder_candidates.append(urljoin(target_url, href))
-            elif href.lower().endswith(CONFIG.FORMATS.value):
-                file_url = urljoin(target_url, href)
-                
-                if file_url in already_scanned_urls:
-                    continue
-                
-                filename = unquote(href.split('/')[-1])
-                current_cache_list.append((file_url, filename))
-                already_scanned_urls.add(file_url) 
-                
-                if filename in processed:
-                    skipped += 1
-                    continue
-                CONFIG.download_queue.value.put((file_url, filename, 0))
-                found += 1
+        cached_files = cached_entry.get("files", [])
+        is_completed = cached_entry.get("completed", False)
+        
+        already_scanned_urls = {item[0] for item in cached_files}
+        processed = load_processed()
+        found = 0
+        skipped = 0
+        current_cache_list = list(cached_files) 
 
-        total_folders = len(folder_candidates)
-        for i, sub_url in enumerate(folder_candidates, 1):
-            try:
-                if i % 3 == 0 or i == total_folders:
-                    await status_msg.edit_text(CONSTANTS.MSG_SCAN_PARTIAL.format(i=i, total=total_folders, found=found, skipped=skipped))
-                    save_explorer_cache(target_url, {"files": current_cache_list, "completed": False})
+        for file_url, filename in cached_files:
+            if filename in processed:
+                skipped += 1
+                continue
+            CONFIG.download_queue.value.put((file_url, filename, 0))
+            found += 1
+        
+        if is_completed:
+            CONFIG.status_data.value["is_searching"] = False
+            CONFIG.status_data.value["total_in_queue"] += found
+            if not CONFIG.status_data.value["status_message"]:
+                CONFIG.status_data.value["status_message"] = await message.reply(CONSTANTS.MSG_START_TRACKING_CACHE)
+            await status_msg.edit_text(CONSTANTS.MSG_CACHE_COMPLETE.format(found=found, skipped=skipped))
+            return
+
+        if found > 0 or skipped > 0:
+            await status_msg.edit_text(CONSTANTS.MSG_CACHE_PARTIAL.format(found_total=found+skipped))
+
+        try:
+            req = await fetch_url(target_url)
+            soup = BeautifulSoup(req.text, "html.parser")
+            links = soup.find_all("a")
+            
+            folder_candidates = []
+            for link in links:
+                href = link.get("href")
+                if not href or href.startswith("?") or "Parent Directory" in link.text:
+                    continue
                 
-                sub_req = requests.get(sub_url, timeout=120)
-                sub_req.raise_for_status()
-                sub_soup = BeautifulSoup(sub_req.text, "html.parser")
-                
-                for sub_link in sub_soup.find_all("a"):
-                    sub_href = sub_link.get("href")
-                    if not sub_href or sub_href.startswith("?") or "Parent Directory" in sub_link.text:
+                if href.endswith('/'):                
+                    folder_candidates.append(urljoin(target_url, href))
+                elif href.lower().endswith(CONFIG.FORMATS.value):
+                    file_url = urljoin(target_url, href)
+                    if file_url in already_scanned_urls:
                         continue
                     
-                    if sub_href.lower().endswith(CONFIG.FORMATS.value):
-                        file_url = urljoin(sub_url, sub_href)
-                        
-                        if file_url in already_scanned_urls:
+                    filename = unquote(href.split('/')[-1])
+                    current_cache_list.append((file_url, filename))
+                    already_scanned_urls.add(file_url) 
+                    
+                    if filename in processed:
+                        skipped += 1
+                        continue
+                    CONFIG.download_queue.value.put((file_url, filename, 0))
+                    found += 1
+
+            total_folders = len(folder_candidates)
+            for i, sub_url in enumerate(folder_candidates, 1):
+                try:
+                    if i % 3 == 0 or i == total_folders:
+                        await status_msg.edit_text(CONSTANTS.MSG_SCAN_PARTIAL.format(i=i, total=total_folders, found=found, skipped=skipped))
+                        save_explorer_cache(target_url, {"files": current_cache_list, "completed": False})
+                    
+                    sub_req = await fetch_url(sub_url)
+                    sub_soup = BeautifulSoup(sub_req.text, "html.parser")
+                    
+                    for sub_link in sub_soup.find_all("a"):
+                        sub_href = sub_link.get("href")
+                        if not sub_href or sub_href.startswith("?") or "Parent Directory" in sub_link.text:
                             continue
+                        
+                        if sub_href.lower().endswith(CONFIG.FORMATS.value):
+                            file_url = urljoin(sub_url, sub_href)
+                            if file_url in already_scanned_urls:
+                                continue
+                                
+                            filename = unquote(sub_href.split('/')[-1])
+                            current_cache_list.append((file_url, filename))
+                            already_scanned_urls.add(file_url)
                             
-                        filename = unquote(sub_href.split('/')[-1])
-                        current_cache_list.append((file_url, filename))
-                        already_scanned_urls.add(file_url)
-                        
-                        if filename in processed:
-                            skipped += 1
-                            continue
-                        CONFIG.download_queue.value.put((file_url, filename, 0))
-                        found += 1
-            except requests.exceptions.RequestException as e:
-                CONFIG.LOGGER.value.error(CONSTANTS.ERR_FOLDER_SCAN.format(url=sub_url, error=e))
-        
-       
-        save_explorer_cache(target_url, {"files": current_cache_list, "completed": True})
-        
-        CONFIG.status_data.value["is_searching"] = False
-        CONFIG.status_data.value["total_in_queue"] += found
-        
-        await status_msg.edit_text(CONSTANTS.MSG_SEARCH_FINISHED.format(found=found, total=len(current_cache_list)))
-        
-        if not CONFIG.status_data.value["status_message"]:
-            CONFIG.status_data.value["status_message"] = await message.reply(CONSTANTS.MSG_START_TRACKING)
+                            if filename in processed:
+                                skipped += 1
+                                continue
+                            CONFIG.download_queue.value.put((file_url, filename, 0))
+                            found += 1
+                except Exception as e:
+                    CONFIG.LOGGER.value.error(CONSTANTS.ERR_FOLDER_SCAN.format(url=sub_url, error=e))
             
-    except requests.exceptions.HTTPError as e:
-        await status_msg.edit_text(CONSTANTS.ERR_NETWORK.format(status=e.response.status_code))
-    except Exception as e:
-        await status_msg.edit_text(CONSTANTS.ERR_UNEXPECTED.format(error=str(e)))
+            save_explorer_cache(target_url, {"files": current_cache_list, "completed": True})
+            CONFIG.status_data.value["is_searching"] = False
+            CONFIG.status_data.value["total_in_queue"] += found
+            
+            await status_msg.edit_text(CONSTANTS.MSG_SEARCH_FINISHED.format(found=found, total=len(current_cache_list)))
+            
+            if not CONFIG.status_data.value["status_message"]:
+                CONFIG.status_data.value["status_message"] = await message.reply(CONSTANTS.MSG_START_TRACKING)
+                
+        except requests.exceptions.HTTPError as e:
+            await status_msg.edit_text(CONSTANTS.ERR_NETWORK.format(status=e.response.status_code))
+        except Exception as e:
+            await status_msg.edit_text(CONSTANTS.ERR_UNEXPECTED.format(error=str(e)))
+    finally:
+        CONFIG.status_data.value["is_searching"] = False
+

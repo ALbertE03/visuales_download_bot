@@ -13,9 +13,6 @@ from bot.manager import manager
 def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> None:
     """Procesador de la cola de descargas."""
     while True:
-        while CONFIG.status_data.value.get("is_searching", False):
-            time.sleep(1)
-            
         try:
             item = CONFIG.download_queue.value.get(timeout=5)
             if item is None: break

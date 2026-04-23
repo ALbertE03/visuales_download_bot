@@ -5,13 +5,7 @@ from bot.config import CONFIG
 from bot.core.download_worker import download_file_worker
 from bot.core.upload_worker import upload_worker
 from bot.core.update_status import update_status_message
-from bot.commands.general import start_handler, main_menu_handler, status_handler
-from bot.commands.github import (
-    ghuser_handler,
-    ghrepo_handler,
-    ghsearch_handler,
-    ghcreate_handler
-)
+from bot.commands.general import start_handler, status_handler
 from bot.commands.server import server_status
 from bot.commands.torrents import torrent_handler
 from bot.commands.visuales import down_handler
@@ -21,35 +15,37 @@ from pyrogram.handlers import MessageHandler
 from pyrogram import filters
 from userbot.main import userbot_app
 
+
 async def setup_bot_commands(app: Client):
     """
     Configura el menú de comandos que aparece en la parte inferior del chat
     """
     commands = [
         types.BotCommand("start", "Iniciar el bot y ver información básica"),
-        types.BotCommand("main_menu", "Mostrar el menú principal de opciones"),
         types.BotCommand("status", "Ver estado del sistema y progreso actual"),
         types.BotCommand("dl", "Descargar contenido desde enlace directo"),
-        types.BotCommand("down", "Descargar contenido (método alternativo)"),
-        types.BotCommand("torrent", "Descargar desde enlace torrent o archivo .torrent"),
+        types.BotCommand("down", "Descargar contenido (método UCLV)"),
+        types.BotCommand(
+            "torrent", "Descargar desde enlace torrent o archivo .torrent"
+        ),
         types.BotCommand("add", "Agregar elementos a la colección"),
         types.BotCommand("end", "Finalizar la colección actual"),
-        types.BotCommand("ghuser", "Buscar información de usuario de GitHub"),
-        types.BotCommand("ghrepo", "Buscar información de repositorio de GitHub"),
-        types.BotCommand("ghsearch", "Realizar búsqueda general en GitHub"),
-        types.BotCommand("ghcreate", "Crear un nuevo repositorio en GitHub"),
-        types.BotCommand("server_status", "Ver estado del servidor y recursos disponibles")
+        types.BotCommand(
+            "server_status", "Ver estado del servidor y recursos disponibles"
+        ),
     ]
-    
+
     try:
 
         await app.set_bot_commands(
-            commands, 
-            scope=types.BotCommandScopeAllPrivateChats()
+            commands, scope=types.BotCommandScopeAllPrivateChats()
         )
-        CONFIG.LOGGER.value.info(f"Menú de comandos configurado con {len(commands)} comandos")
+        CONFIG.LOGGER.value.info(
+            f"Menú de comandos configurado con {len(commands)} comandos"
+        )
     except Exception as e:
         CONFIG.LOGGER.value.error(f"Error al configurar menú de comandos: {e}")
+
 
 def setup_bots():
     CONFIG.LOGGER.value.info("Configurando Bots...")
@@ -70,18 +66,10 @@ def setup_bots():
     )
 
     app.add_handler(MessageHandler(start_handler, filters.command("start")))
-    app.add_handler(MessageHandler(main_menu_handler, filters.command("main_menu")))
+
     app.add_handler(MessageHandler(status_handler, filters.command("status")))
     app.add_handler(MessageHandler(server_status, filters.command("server_status")))
-    app.add_handler(MessageHandler(ghuser_handler, filters.command("ghuser")))
-    app.add_handler(MessageHandler(ghrepo_handler, filters.command("ghrepo")))
-    app.add_handler(MessageHandler(ghsearch_handler, filters.command("ghsearch")))
-    app.add_handler(MessageHandler(ghcreate_handler, filters.command("ghcreate")))
-    app.add_handler(
-        MessageHandler(
-            download_handler, filters.command("dl")
-        )
-    )
+    app.add_handler(MessageHandler(download_handler, filters.command("dl")))
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
     app.add_handler(
         MessageHandler(
@@ -92,7 +80,24 @@ def setup_bots():
     )
     app.add_handler(MessageHandler(add_handler, filters.command("add")))
     app.add_handler(MessageHandler(end_handler, filters.command("end")))
-    app.add_handler(MessageHandler(collection_monitor_handler, ~filters.command(["add", "end", "start", "main_menu", "status", "dl", "down", "torrent"])), group=1)
+    app.add_handler(
+        MessageHandler(
+            collection_monitor_handler,
+            ~filters.command(
+                [
+                    "add",
+                    "end",
+                    "start",
+                    "status",
+                    "dl",
+                    "down",
+                    "torrent",
+                    "server_status",
+                ]
+            ),
+        ),
+        group=1,
+    )
     for _ in range(CONFIG.CANT_WORKER.value):
         Thread(target=download_file_worker, args=(app, loop), daemon=True).start()
 
@@ -107,35 +112,35 @@ def setup_bots():
 
     def run_loop():
         asyncio.set_event_loop(loop)
-        
+
         background_tasks = set()
         original_create_task = asyncio.create_task
         original_loop_create_task = loop.create_task
-        
+
         def create_task_patch(coro, *args, **kwargs):
             task = original_create_task(coro, *args, **kwargs)
             background_tasks.add(task)
             task.add_done_callback(background_tasks.discard)
             return task
-            
+
         def loop_create_task_patch(coro, *args, **kwargs):
             task = original_loop_create_task(coro, *args, **kwargs)
             background_tasks.add(task)
             task.add_done_callback(background_tasks.discard)
             return task
-            
+
         asyncio.create_task = create_task_patch
         loop.create_task = loop_create_task_patch
-        
+
         async def start_clients():
             await app.start()
             await userbot_app.start()
-            
+
             await setup_bot_commands(app)
-            
+
         loop.run_until_complete(start_clients())
         loop.run_forever()
 
     Thread(target=run_loop, daemon=True).start()
-    
+
     return app, userbot_app
