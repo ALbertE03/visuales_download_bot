@@ -3,7 +3,7 @@ import os
 class CONSTANTS:
     # Directorios y Bases de Datos
     DOWNLOAD_DIR = "downloads"
-    DB_DIR = "bot/database"
+    DB_DIR = "database"
     PROCESSED_DB = os.path.join(DB_DIR, "processed.json")
     EXPLORER_CACHE_DB = os.path.join(DB_DIR, "explorer_cache.json")
     

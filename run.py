@@ -12,6 +12,7 @@ from bot.commands.github import (
     ghsearch_handler,
     ghcreate_handler
 )
+from bot.commands.server import server_status
 from bot.commands.torrents import torrent_handler
 from bot.commands.visuales import down_handler
 from bot.commands.download import download_handler
@@ -37,6 +38,7 @@ async def setup_bot_commands(app: Client):
         types.BotCommand("ghrepo", "Buscar información de repositorio de GitHub"),
         types.BotCommand("ghsearch", "Realizar búsqueda general en GitHub"),
         types.BotCommand("ghcreate", "Crear un nuevo repositorio en GitHub"),
+        types.BotCommand("server_status", "Ver estado del servidor y recursos disponibles")
     ]
     
     try:
@@ -70,6 +72,7 @@ def setup_bots():
     app.add_handler(MessageHandler(start_handler, filters.command("start")))
     app.add_handler(MessageHandler(main_menu_handler, filters.command("main_menu")))
     app.add_handler(MessageHandler(status_handler, filters.command("status")))
+    app.add_handler(MessageHandler(server_status, filters.command("server_status")))
     app.add_handler(MessageHandler(ghuser_handler, filters.command("ghuser")))
     app.add_handler(MessageHandler(ghrepo_handler, filters.command("ghrepo")))
     app.add_handler(MessageHandler(ghsearch_handler, filters.command("ghsearch")))
@@ -90,7 +93,6 @@ def setup_bots():
     app.add_handler(MessageHandler(add_handler, filters.command("add")))
     app.add_handler(MessageHandler(end_handler, filters.command("end")))
     app.add_handler(MessageHandler(collection_monitor_handler, ~filters.command(["add", "end", "start", "main_menu", "status", "dl", "down", "torrent"])), group=1)
-    
     for _ in range(CONFIG.CANT_WORKER.value):
         Thread(target=download_file_worker, args=(app, loop), daemon=True).start()
 
