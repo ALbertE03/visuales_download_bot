@@ -1,5 +1,5 @@
-
-from pyrogram import Client, Message
+from pyrogram import Client
+from pyrogram.types import Message
 import psutil
 
 async def server_status(client: Client, message: Message):
