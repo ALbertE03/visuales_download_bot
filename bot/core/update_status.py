@@ -3,6 +3,7 @@ import time
 from bot.config import CONFIG
 from bot.utils import format_size, format_time
 from bot.constants import CONSTANTS
+import pyrogram
 from pyrogram import Client
 
 START_TIME = time.time()
