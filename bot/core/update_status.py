@@ -134,6 +134,9 @@ async def update_status_message(client: Client) -> None:
                         await current_status_msg.edit_text(txt)
                         last_text = txt
                         last_message_id = current_status_msg.id
+                    except pyrogram.errors.FloodWait as e:
+                        CONFIG.LOGGER.value.warning(f"FloodWait detectado: esperando {e.value} segundos...")
+                        await asyncio.sleep(e.value)
                     except Exception as e:
                         error_str = str(e)
                         if "MESSAGE_ID_INVALID" in error_str:
@@ -143,7 +146,9 @@ async def update_status_message(client: Client) -> None:
                                 f"Error actualizando status: {e}"
                             )
 
-            await asyncio.sleep(4)
+            await asyncio.sleep(15)
+        except pyrogram.errors.FloodWait as e:
+            await asyncio.sleep(e.value)
         except Exception as e:
             CONFIG.LOGGER.value.error(CONSTANTS.LOG_STATUS_LOOP_ERROR.format(error=e))
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
