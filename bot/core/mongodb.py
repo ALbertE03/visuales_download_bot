@@ -1,8 +1,8 @@
 import os
+import certifi
 from pymongo import MongoClient
 from bot.log import logger
 from pymongo.server_api import ServerApi
-
 
 class MongoDB:
     def __init__(self):
@@ -14,7 +14,8 @@ class MongoDB:
             return
 
         try:
-            self.client = MongoClient(uri, server_api=ServerApi("1"))
+            ca = certifi.where()
+            self.client = MongoClient(uri, tlsCAFile=ca, server_api=ServerApi("1"))
             self.db = self.client["visuales_bot"]
             self.movies = self.db["movies"]
             self.settings = self.db["settings"]
