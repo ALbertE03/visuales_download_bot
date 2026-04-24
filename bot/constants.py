@@ -92,6 +92,8 @@ class CONSTANTS:
     LOG_DETECTED_DIR = "Detectado directorio en upload_file: {filename}, subiendo contenidos..."
     LOG_SPLITTING = "Archivo {filename} es mayor a 2GB, dividiendo..."
     
+    MSG_TORRENT_CANCELLED_NO_SEEDS = "<blockquote><b>Aviso:</b> Descarga de torrent <code>{filename}</code> cancelada por falta de semillas (30 min inactivo).</blockquote>"
+    
     # Mensajes de Error y Excepciones
     ERR_NO_GDRIVE_ID = "<blockquote><b>Error:</b> ID de Google Drive no encontrado.</blockquote>"
     ERR_FILE_NOT_FOUND = "<blockquote><b>Error:</b> El archivo no existe: <code>{path}</code></blockquote>"

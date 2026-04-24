@@ -4,13 +4,19 @@ import requests
 import streamlit as st
 from pyrogram import Client, filters
 from pyrogram.errors import MessageNotModified
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from bot.log import logger
+import re
+from bot.core.mongodb import db
+from bot.core.search_engine import engine
 
 API_ID = st.secrets.get("API_ID")
 API_HASH = st.secrets.get("API_HASH")
 GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
 SESSION_STRING = st.secrets.get("SESSION_STRING", "")
+SOURCE_CHANNEL = "CL_LibraryBK"
+TARGET_GROUP_SEARCH = "chat1080p"
+
 processed_cine_msgs = set()
 
 if not API_ID or not API_HASH:
@@ -123,6 +129,92 @@ async def process_transcription(
             logger.info(f"Archivo temporal eliminado: {file_path}")
 
 
+def extract_movie_metadata(text, msg_id):
+    """Extrae el título de la primera línea: Nombre | Nombre"""
+    if not text:
+        return None
+
+    first_line = text.split("\n")[0]
+
+    if "|" in first_line:
+        title = first_line.split("|")[0]
+    else:
+        title = first_line
+
+    title = re.sub(r"^[^\w\s]+|[^\w\s]+$", "", title).strip()
+
+    if not title:
+        return None
+
+    return {"msg_id": msg_id, "title": title}
+
+
+async def scrape_channel_history(client: Client):
+    """Escanea el historial del canal para indexar publicaciones antiguas"""
+    logger.info(f"Iniciando escaneo de historial de @{SOURCE_CHANNEL}...")
+    last_id = db.get_last_scanned_id(SOURCE_CHANNEL)
+
+    count = 0
+    async for message in client.get_chat_history(
+        SOURCE_CHANNEL, offset_id=last_id, reverse=True
+    ):
+        metadata = extract_movie_metadata(message.text or message.caption, message.id)
+        if metadata:
+            db.save_movie(metadata)
+            count += 1
+
+        if message.id % 50 == 0:
+            db.set_last_scanned_id(SOURCE_CHANNEL, message.id)
+
+    if count > 0:
+        db.set_last_scanned_id(SOURCE_CHANNEL, 0)
+        engine.refresh()
+        logger.info(f"Escaneo finalizado. Se indexaron {count} nuevas publicaciones.")
+
+
+@userbot_app.on_message(filters.chat(SOURCE_CHANNEL))
+async def auto_index_handler(client: Client, message: Message):
+    """Indexa automáticamente nuevos mensajes del canal"""
+    metadata = extract_movie_metadata(message.text or message.caption, message.id)
+    if metadata:
+        db.save_movie(metadata)
+        engine.refresh()
+        logger.info(f"Nueva película indexada: {metadata['title']}")
+
+
+@userbot_app.on_message(filters.command("search", prefixes="/"))
+async def search_handler(client: Client, message: Message):
+    """Comando de búsqueda por similitud de coseno"""
+
+    if (
+        str(message.chat.id) != TARGET_GROUP_SEARCH
+        and message.chat.username != TARGET_GROUP_SEARCH
+    ):
+        return
+
+    query = " ".join(message.command[1:])
+    if not query:
+        return
+
+    results = engine.search(query)
+
+    if not results:
+        await message.reply_text("No se encontraron resultados.")
+        return
+
+    response = f"<b>Resultados para:</b> <code>{query}</code>"
+    buttons = []
+    for i, res in enumerate(results, 1):
+        link = f"https://t.me/{SOURCE_CHANNEL}/{res['msg_id']}"
+        buttons.append([InlineKeyboardButton(f"{i}. {res['title']}", url=link)])
+
+    await message.reply_text(
+        response,
+        reply_markup=InlineKeyboardMarkup(buttons),
+        disable_web_page_preview=True,
+    )
+
+
 @userbot_app.on_message(filters.command("totext", prefixes="/") & filters.me)
 async def totext_cmd(client: Client, message: Message):
     target = message.reply_to_message
@@ -173,3 +265,11 @@ async def cine_filter_handler(client: Client, message: Message):
 
     if not message.photo and not message.document:
         await message.reply_text("es con una foto")
+
+
+async def startup_scraper():
+    await asyncio.sleep(5)
+    await scrape_channel_history(userbot_app)
+
+
+asyncio.ensure_future(startup_scraper())

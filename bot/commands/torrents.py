@@ -37,4 +37,4 @@ async def torrent_handler(client: Client, message: Message) -> None:
     await message.reply(CONSTANTS.MSG_ADDED_TORRENT_QUEUE)
     
     loop = asyncio.get_event_loop()
-    threading.Thread(target=download_torrent, args=(client, loop, magnet_link or torrent_path), daemon=True).start()
+    threading.Thread(target=download_torrent, args=(client, loop, magnet_link or torrent_path, message.chat.id), daemon=True).start()
