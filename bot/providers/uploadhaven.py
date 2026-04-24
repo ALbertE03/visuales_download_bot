@@ -6,11 +6,13 @@ from typing import Tuple
 from bot.providers.base import BaseProvider
 from bot.config import CONFIG
 from bot.constants import CONSTANTS
+import re
+from urllib.parse import unquote
 
 
 class UploadHavenProvider(BaseProvider):
     def matches(self, url: str) -> bool:
-        return "uploadhaven.com" in url
+        return "uploadhaven.com" in url.lower()
 
     async def download(
         self, url: str, destination: str, task_key: str
@@ -25,18 +27,20 @@ class UploadHavenProvider(BaseProvider):
     ) -> Tuple[str, str]:
         CONFIG.LOGGER.value.info(f"Usando UploadHavenProvider para: {url}")
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Referer": "https://uploadhaven.com/",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
             "Accept-Language": "en-US,en;q=0.9,es;q=0.8",
             "Accept-Encoding": "gzip, deflate, br",
+            "Referer": "https://uploadhaven.com/",
             "Connection": "keep-alive",
             "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "cross-site",
+            "Sec-Fetch-User": "?1",
         }
 
         filename = "downloaded_file"
-        import re
-        from urllib.parse import unquote
 
         filename_match = re.search(r"filename=([^&]+)", url)
         if filename_match:
