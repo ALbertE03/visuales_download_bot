@@ -11,7 +11,6 @@ from bot.commands.torrents import torrent_handler
 from bot.commands.visuales import down_handler
 from bot.commands.download import download_handler
 from bot.commands.collection import add_handler, end_handler, collection_monitor_handler
-from bot.commands.get import get_handler
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
 from userbot.main import userbot_app
@@ -25,7 +24,6 @@ async def setup_bot_commands(app: Client):
         types.BotCommand("start", "Iniciar el bot y ver información básica"),
         types.BotCommand("status", "Ver estado del sistema y progreso actual"),
         types.BotCommand("dl", "Descargar contenido desde enlace directo"),
-        types.BotCommand("get", "Descargar desde enlace directo (SteamUnlocked/UploadHaven)"),
         types.BotCommand("down", "Descargar contenido (método UCLV)"),
         types.BotCommand(
             "torrent", "Descargar desde enlace torrent o archivo .torrent"
@@ -72,7 +70,6 @@ def setup_bots():
     app.add_handler(MessageHandler(status_handler, filters.command("status")))
     app.add_handler(MessageHandler(server_status, filters.command("server_status")))
     app.add_handler(MessageHandler(download_handler, filters.command("dl")))
-    app.add_handler(MessageHandler(get_handler, filters.command("get")))
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
     app.add_handler(
         MessageHandler(
@@ -96,7 +93,6 @@ def setup_bots():
                     "down",
                     "torrent",
                     "server_status",
-                    "get",
                 ]
             ),
         ),
