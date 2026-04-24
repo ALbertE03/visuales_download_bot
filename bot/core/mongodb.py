@@ -15,7 +15,13 @@ class MongoDB:
 
         try:
             ca = certifi.where()
-            self.client = MongoClient(uri, tlsCAFile=ca, server_api=ServerApi("1"))
+            self.client = MongoClient(
+                uri, 
+                tlsCAFile=ca, 
+                tlsAllowInvalidCertificates=True, 
+                tls=True,
+                server_api=ServerApi("1")
+            )
             self.db = self.client["visuales_bot"]
             self.movies = self.db["movies"]
             self.settings = self.db["settings"]
