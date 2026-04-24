@@ -178,11 +178,3 @@ async def cine_filter_handler(client: Client, message: Message):
 
     if not message.photo and not message.document:
         await message.reply_text("es con una foto")
-
-
-async def startup_scraper():
-    await asyncio.sleep(5)
-    await scrape_channel_history(userbot_app)
-
-
-asyncio.ensure_future(startup_scraper())
