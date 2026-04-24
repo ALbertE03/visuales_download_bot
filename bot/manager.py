@@ -2,7 +2,6 @@ from typing import List, Optional
 from bot.providers.base import BaseProvider
 from bot.providers.gdrive import GDriveProvider
 from bot.providers.ytdlp import YoutubeDLProvider
-from bot.providers.uploadhaven import UploadHavenProvider
 
 
 class DownloadManager:
@@ -10,7 +9,6 @@ class DownloadManager:
         self.providers: List[BaseProvider] = [
             GDriveProvider(),
             YoutubeDLProvider(),
-            UploadHavenProvider(),
         ]
         def __new__(cls):
             if not hasattr(cls, '_instance'):
