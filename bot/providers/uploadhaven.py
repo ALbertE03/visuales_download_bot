@@ -25,22 +25,12 @@ class UploadHavenProvider(BaseProvider):
     def _sync_download(
         self, url: str, destination: str, task_key: str
     ) -> Tuple[str, str]:
-        CONFIG.LOGGER.value.info(f"Usando UploadHavenProvider para: {url}")
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-            "Accept-Language": "en-US,en;q=0.9,es;q=0.8",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Referer": "https://uploadhaven.com/",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "cross-site",
-            "Sec-Fetch-User": "?1",
-        }
-
+        CONFIG.LOGGER.value.info(f"Usando UploadHavenProvider (curl) para: {url}")
+        
         filename = "downloaded_file"
+        import re
+        from urllib.parse import unquote
+        import subprocess
 
         filename_match = re.search(r"filename=([^&]+)", url)
         if filename_match:
@@ -50,34 +40,59 @@ class UploadHavenProvider(BaseProvider):
             filename = unquote(os.path.basename(url_path)) or "downloaded_file"
 
         file_path = os.path.join(destination, filename)
+        
+        # Primero obtenemos el tamaño del archivo con una petición HEAD (vía curl)
+        try:
+            head_cmd = [
+                "curl", "-sI",
+                "-L", # Seguir redirecciones
+                "-A", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "-e", "https://uploadhaven.com/",
+                url
+            ]
+            head_output = subprocess.check_output(head_cmd, stderr=subprocess.STDOUT).decode('utf-8', errors='ignore')
+            
+            total_size = 0
+            for line in head_output.splitlines():
+                if line.lower().startswith("content-length:"):
+                    total_size = int(line.split(":")[1].strip())
+                    break
+            
+            CONFIG.status_data.value["active"][task_key]["total"] = total_size
+        except Exception as e:
+            CONFIG.LOGGER.value.warning(f"No se pudo obtener el tamaño del archivo con curl HEAD: {e}")
+            total_size = 0
 
-        response = requests.get(url, stream=True, timeout=120, headers=headers)
-        response.raise_for_status()
-
-        total_size = int(response.headers.get("content-length", 0))
-        downloaded = 0
-        CONFIG.status_data.value["active"][task_key]["total"] = total_size
-
+        # Comando curl para descargar
+        curl_cmd = [
+            "curl", "-L",
+            "-A", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "-e", "https://uploadhaven.com/",
+            "-o", file_path,
+            url
+        ]
+        
+        # Iniciamos la descarga en un proceso separado
+        process = subprocess.Popen(curl_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
         start_time = time.time()
-        with open(file_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=CONSTANTS.CHUNK_SIZE):
-                if chunk:
-                    f.write(chunk)
-                    downloaded += len(chunk)
-
-                    if task_key in CONFIG.status_data.value["active"]:
-                        CONFIG.status_data.value["active"][task_key][
-                            "downloaded"
-                        ] = downloaded
-                        if total_size > 0:
-                            CONFIG.status_data.value["active"][task_key]["progress"] = (
-                                downloaded / total_size
-                            ) * 100
-
-                        elapsed = time.time() - start_time
-                        if elapsed > 1:
-                            CONFIG.status_data.value["active"][task_key]["speed"] = (
-                                downloaded / elapsed
-                            )
-
+        while process.poll() is None:
+            # Actualizamos el progreso basándonos en el tamaño del archivo en disco
+            if os.path.exists(file_path):
+                downloaded = os.path.getsize(file_path)
+                if task_key in CONFIG.status_data.value["active"]:
+                    CONFIG.status_data.value["active"][task_key]["downloaded"] = downloaded
+                    if total_size > 0:
+                        CONFIG.status_data.value["active"][task_key]["progress"] = (downloaded / total_size) * 100
+                    
+                    elapsed = time.time() - start_time
+                    if elapsed > 1:
+                        CONFIG.status_data.value["active"][task_key]["speed"] = downloaded / elapsed
+            
+            time.sleep(1)
+            
+        if process.returncode != 0:
+            stderr = process.stderr.read().decode('utf-8', errors='ignore')
+            raise Exception(f"Curl falló con código {process.returncode}: {stderr}")
+            
         return file_path, filename
