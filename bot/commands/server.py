@@ -43,10 +43,4 @@ async def server_status(client: Client, message: Message):
     sms += f"<b>Descargado:</b> <code>{format_size(net.bytes_recv)}</code>"
     sms += "</blockquote>\n\n"
 
-    sms += "<b>⎯⎯ SOFTWARE ⎯⎯</b>\n"
-    sms += "<blockquote>"
-    sms += f"<b>Python:</b> <code>{sys.version.split()[0]}</code>\n"
-    sms += f"<b>Pyrogram:</b> <code>{pyrogram.__version__}</code>"
-    sms += "</blockquote>"
-
     await message.reply(sms)

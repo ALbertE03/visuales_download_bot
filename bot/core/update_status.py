@@ -109,14 +109,12 @@ async def update_status_message(client: Client) -> None:
                 completed = CONFIG.status_data.value["completed"]
                 failed = CONFIG.status_data.value["failed"]
 
-                # Agregar métricas globales al final
                 lines.append(CONSTANTS.PANEL_GLOBAL_HEADER)
                 lines.append(
                     CONSTANTS.PANEL_GLOBAL_STATS.format(
                         uptime=uptime_str,
                         completed=completed,
                         failed=failed,
-                        queue=queue_count,
                     )
                 )
 

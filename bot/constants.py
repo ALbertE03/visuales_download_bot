@@ -58,7 +58,7 @@ class CONSTANTS:
     PANEL_NO_TASKS = "<blockquote><i>Sistema inactivo. Esperando nuevas peticiones.</i></blockquote>\n"
     PANEL_TASK_ITEM = "<blockquote><b>Fase:</b> <code>{task_type}</code>\n<b>Archivo:</b> <code>{filename}</code>\n<b>Avance:</b> <code>[{bar}] {progress:.1f}%</code>\n<b>Datos:</b> <code>{downloaded}</code> de <code>{total}</code>\n<b>Velocidad:</b> <code>{speed}</code> | <b>ETA:</b> <code>{eta}</code></blockquote>"
     PANEL_GLOBAL_HEADER = "<b>⎯⎯ METRICAS GLOBALES ⎯⎯</b>"
-    PANEL_GLOBAL_STATS = "<blockquote><b>Tiempo Activo:</b> <code>{uptime}</code>\n<b>Completados:</b> <code>{completed}</code> | <b>Fallidos:</b> <code>{failed}</code>\n<b>Archivos en Espera (Cola):</b> <code>{queue}</code></blockquote>"
+    PANEL_GLOBAL_STATS = "<blockquote><b>Tiempo Activo:</b> <code>{uptime}</code>\n<b>Completados:</b> <code>{completed}</code> | <b>Fallidos:</b> <code>{failed}</code></blockquote>"
     
     # Mensajes de Log y otros (Consola)
     LOG_DOWNLOADING = "Descargando {filename} desde {url}..."

@@ -22,3 +22,4 @@ down_pend/
 logs/
 visuales_bot.session
 visuales_bot.session-journal
+.ruff_cache
