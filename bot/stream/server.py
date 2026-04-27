@@ -147,6 +147,10 @@ async def watch_handler(request: web.Request):
                     <p class="vjs-no-js">Para ver este video, habilita JavaScript o usa un navegador compatible.</p>
                 </video>
             </div>
+            <div id="error-msg" style="display:none; margin-top: 15px; background: #ef4444; padding: 15px; border-radius: 8px; text-align: center;">
+                <p style="margin: 0 0 10px 0;">Este formato de video no es compatible con tu navegador.</p>
+                <a id="vlc-link" href="#" style="background: white; color: #ef4444; padding: 5px 15px; border-radius: 5px; text-decoration: none; font-weight: bold;">Abrir en VLC Player</a>
+            </div>
             <div class="input-box">
                 <input type="text" id="streamUrl" placeholder="Pega aquí tu enlace de stream...">
                 <button onclick="loadVideo()">Cargar</button>
@@ -160,7 +164,14 @@ async def watch_handler(request: web.Request):
                 userActions: { hotkeys: true }
             });
 
+            player.on('error', function() {
+                const error = player.error();
+                console.log("Video.js Error:", error);
+                document.getElementById('error-msg').style.display = 'block';
+            });
+
             function loadVideo() {
+                document.getElementById('error-msg').style.display = 'none';
                 const urlInput = document.getElementById('streamUrl').value.trim();
                 if (!urlInput) return;
                 
@@ -169,14 +180,17 @@ async def watch_handler(request: web.Request):
                     finalUrl += finalUrl.includes('?') ? '&s=1' : '?s=1';
                 }
                 
-                // Intentar detectar el tipo por la extensión en la URL
                 let type = 'video/mp4';
                 if (finalUrl.includes('.webm')) type = 'video/webm';
-                if (finalUrl.includes('.ogg')) type = 'video/ogg';
                 if (finalUrl.includes('.mkv')) type = 'video/x-matroska';
 
                 player.src({ type: type, src: finalUrl });
-                player.play().catch(e => console.log("Play error:", e));
+                player.play().catch(e => {
+                    console.log("Play error:", e);
+                });
+                
+                // Actualizar links externos
+                document.getElementById('vlc-link').href = 'vlc://' + finalUrl.replace(/^https?:\/\//, '');
             }
 
             window.onload = function() {
@@ -191,6 +205,7 @@ async def watch_handler(request: web.Request):
     </body>
     </html>
     """
+
     return web.Response(text=html_content, content_type="text/html")
 
 
