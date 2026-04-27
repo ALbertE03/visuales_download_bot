@@ -82,97 +82,103 @@ async def watch_handler(request: web.Request):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Stream Player</title>
+        <title>Visuales Stream Player</title>
+        <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
         <style>
             :root {
                 --primary: #6366f1;
                 --bg: #0f172a;
                 --panel: #1e293b;
-                --text: #f8fafc;
-                --text-muted: #94a3b8;
             }
             body {
                 margin: 0; padding: 0;
                 background-color: var(--bg);
-                color: var(--text);
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                color: #f8fafc;
+                font-family: 'Inter', sans-serif;
                 display: flex; flex-direction: column;
                 align-items: center; justify-content: center;
                 min-height: 100vh;
             }
             .container {
-                width: 90%; max-width: 800px;
+                width: 95%; max-width: 900px;
                 background: var(--panel);
-                padding: 2rem; border-radius: 12px;
-                box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.25);
+                padding: 1.5rem; border-radius: 16px;
+                box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             }
             h1 {
-                text-align: center; margin-top: 0; font-weight: 600;
-                background: -webkit-linear-gradient(45deg, #a855f7, #6366f1);
+                text-align: center; margin: 0 0 1.5rem 0; font-size: 1.5rem;
+                background: linear-gradient(45deg, #a855f7, #6366f1);
                 -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             }
-            p.subtitle { text-align: center; color: var(--text-muted); margin-bottom: 2rem; }
-            .input-group { display: flex; gap: 10px; margin-bottom: 2rem; }
-            input[type="text"] {
-                flex: 1; padding: 12px 16px; border-radius: 8px;
-                border: 1px solid #334155; background: #0f172a;
-                color: white; font-size: 1rem; outline: none;
-                transition: border-color 0.2s;
+            .video-container {
+                width: 100%; border-radius: 12px; overflow: hidden;
+                background: #000; aspect-ratio: 16 / 9;
+                border: 1px solid #334155;
             }
-            input[type="text"]:focus { border-color: var(--primary); }
+            .video-js { width: 100%; height: 100%; }
+            .vjs-big-play-button {
+                top: 50% !important; left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                background-color: rgba(99, 102, 241, 0.8) !important;
+                border-radius: 50% !important; width: 2em !important; height: 2em !important;
+                line-height: 2em !important; border: none !important;
+            }
+            .input-box {
+                margin-top: 1.5rem; display: flex; gap: 8px;
+            }
+            input {
+                flex: 1; background: #0f172a; border: 1px solid #334155;
+                color: white; padding: 10px 15px; border-radius: 8px; outline: none;
+            }
             button {
-                padding: 12px 24px; background: var(--primary);
-                color: white; border: none; border-radius: 8px;
-                font-size: 1rem; font-weight: 500; cursor: pointer;
-                transition: background-color 0.2s, transform 0.1s;
+                background: var(--primary); color: white; border: none;
+                padding: 10px 20px; border-radius: 8px; cursor: pointer;
+                font-weight: 600; transition: 0.2s;
             }
             button:hover { background: #4f46e5; }
-            button:active { transform: scale(0.98); }
-            .video-wrapper {
-                position: relative; width: 100%; background: #000;
-                border-radius: 8px; overflow: hidden; display: none;
-                aspect-ratio: 16 / 9;
-            }
-            .video-wrapper.active { display: block; animation: fadeIn 0.4s ease-out forwards; }
-            video { width: 100%; height: 100%; outline: none; }
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>Stream Player</h1>
-            <p class="subtitle">Pega tu enlace de stream generado para reproducirlo</p>
-            <div class="input-group">
-                <input type="text" id="streamUrl" placeholder="https://url/stream/123?hash=abc" />
-                <button onclick="playStream()">Reproducir</button>
+            <h1>Visuales Stream Player</h1>
+            <div class="video-container">
+                <video id="player" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" data-setup='{}'>
+                    <p class="vjs-no-js">Para ver este video, habilita JavaScript o usa un navegador compatible.</p>
+                </video>
             </div>
-            <div class="video-wrapper" id="videoWrapper">
-                <video id="player" controls>Tu navegador no soporta video.</video>
+            <div class="input-box">
+                <input type="text" id="streamUrl" placeholder="Pega aquí tu enlace de stream...">
+                <button onclick="loadVideo()">Cargar</button>
             </div>
         </div>
+        <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
         <script>
-            function playStream() {
+            const player = videojs('player', {
+                fluid: true,
+                playbackRates: [0.5, 1, 1.5, 2],
+                userActions: { hotkeys: true }
+            });
+
+            function loadVideo() {
                 const urlInput = document.getElementById('streamUrl').value.trim();
-                const player = document.getElementById('player');
-                const wrapper = document.getElementById('videoWrapper');
-                if (!urlInput) { alert('Ingresa una URL válida'); return; }
+                if (!urlInput) return;
+                
                 let finalUrl = urlInput;
                 if (!finalUrl.includes('s=1')) {
                     finalUrl += finalUrl.includes('?') ? '&s=1' : '?s=1';
                 }
-                player.src = finalUrl;
-                wrapper.classList.add('active');
-                player.play().catch(e => console.log('Auto-play bloqueado:', e));
+                
+                player.src({ type: 'video/mp4', src: finalUrl });
+                player.play().catch(e => console.log("Play error:", e));
             }
+
             window.onload = function() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const streamUrl = urlParams.get('url');
                 if (streamUrl) {
                     document.getElementById('streamUrl').value = streamUrl;
-                    playStream();
+                    setTimeout(loadVideo, 500);
                 }
             };
         </script>
@@ -180,6 +186,7 @@ async def watch_handler(request: web.Request):
     </html>
     """
     return web.Response(text=html_content, content_type="text/html")
+
 
 
 @routes.get(r"/stream/{messageID:\d+}", allow_head=True)
