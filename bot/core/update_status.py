@@ -39,7 +39,7 @@ async def update_status_message(client: Client) -> None:
                     else:
                         lines.append(CONSTANTS.PANEL_NO_TASKS)
                 else:
-                    max_task = CONFIG.MAX_VISIBLE_TASKS
+                    max_task = CONSTANTS.MAX_VISIBLE_TASKS
                     for i, data in enumerate(active_list):
                         if i >= max_task:
                             lines.append(

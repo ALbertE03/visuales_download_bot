@@ -9,6 +9,7 @@ dependencies = [
     "bs4>=0.0.2",
     "megatools>=0.0.4",
     "patool>=4.0.4",
+    "libtorrent"
     "py7zr>=1.1.0",
     "kurigram>=2.0.22",
     "python-dotenv>=1.2.2",

@@ -18,7 +18,7 @@ class CONFIG(Enum):
         TARGET_GROUP = int(_target_raw)
     except ValueError:
         TARGET_GROUP = _target_raw
-
+        
     BASE_URL: str = st.secrets.get("BASE_URL", "https://visuales.uclv.cu/")
     DOWNLOAD_DIR: str = CONSTANTS.DOWNLOAD_DIR
     PROCESSED_DB: str = CONSTANTS.PROCESSED_DB
@@ -28,8 +28,8 @@ class CONFIG(Enum):
     STREAM_BIN_CHANNEL: int = int(st.secrets.get("STREAM_BIN_CHANNEL", "-1003726563984"))
     STREAM_PORT: int = int(st.secrets.get("STREAM_PORT", 8080))
 
-    CANT_WORKER: int = 2
-    UPLOAD_WORKER: int = 2
+    CANT_WORKER: int = 3
+    UPLOAD_WORKER: int = 4
     RETRY_MAX: int = 3
 
     status_data: Dict[str, Any] = {
