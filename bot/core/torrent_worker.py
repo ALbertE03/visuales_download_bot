@@ -1,3 +1,7 @@
+import sys
+import glob
+sys.path.extend(glob.glob('/usr/lib/python3*/dist-packages'))
+
 import libtorrent as lt
 import time
 import os
