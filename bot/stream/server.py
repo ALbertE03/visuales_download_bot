@@ -82,130 +82,76 @@ async def watch_handler(request: web.Request):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Visuales Stream Player</title>
-        <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+        <title>Visuales Player</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
         <style>
-            :root {
-                --primary: #6366f1;
-                --bg: #0f172a;
-                --panel: #1e293b;
-            }
+            :root { --primary: #6366f1; --bg: #0f172a; --panel: #1e293b; }
             body {
-                margin: 0; padding: 0;
-                background-color: var(--bg);
-                color: #f8fafc;
+                margin: 0; background: var(--bg); color: white;
                 font-family: 'Inter', sans-serif;
-                display: flex; flex-direction: column;
-                align-items: center; justify-content: center;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
                 min-height: 100vh;
             }
-            .container {
-                width: 95%; max-width: 900px;
-                background: var(--panel);
-                padding: 1.5rem; border-radius: 16px;
-                box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            }
-            h1 {
-                text-align: center; margin: 0 0 1.5rem 0; font-size: 1.5rem;
-                background: linear-gradient(45deg, #a855f7, #6366f1);
-                -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            }
-            .video-container {
-                width: 100%; border-radius: 12px; overflow: hidden;
-                background: #000; aspect-ratio: 16 / 9;
-                border: 1px solid #334155;
-            }
-            .video-js { width: 100%; height: 100%; }
-            .vjs-big-play-button {
-                top: 50% !important; left: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                background-color: rgba(99, 102, 241, 0.8) !important;
-                border-radius: 50% !important; width: 2em !important; height: 2em !important;
-                line-height: 2em !important; border: none !important;
-            }
-            .input-box {
-                margin-top: 1.5rem; display: flex; gap: 8px;
-            }
-            input {
-                flex: 1; background: #0f172a; border: 1px solid #334155;
-                color: white; padding: 10px 15px; border-radius: 8px; outline: none;
-            }
-            button {
-                background: var(--primary); color: white; border: none;
-                padding: 10px 20px; border-radius: 8px; cursor: pointer;
-                font-weight: 600; transition: 0.2s;
-            }
-            button:hover { background: #4f46e5; }
+            .container { width: 95%; max-width: 800px; background: var(--panel); padding: 20px; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+            h1 { text-align: center; margin: 0 0 20px 0; font-size: 1.4rem; color: var(--primary); }
+            video { width: 100%; border-radius: 10px; background: #000; outline: none; aspect-ratio: 16/9; }
+            .error-box { display: none; background: #ef4444; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; }
+            .vlc-btn { display: inline-block; background: white; color: #ef4444; padding: 8px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px; }
+            .input-box { margin-top: 20px; display: flex; gap: 10px; }
+            input { flex: 1; background: #0f172a; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; outline: none; }
+            button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>Visuales Stream Player</h1>
-            <div class="video-container">
-                <video id="player" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" data-setup='{}'>
-                    <p class="vjs-no-js">Para ver este video, habilita JavaScript o usa un navegador compatible.</p>
-                </video>
-            </div>
-            <div id="error-msg" style="display:none; margin-top: 15px; background: #ef4444; padding: 15px; border-radius: 8px; text-align: center;">
-                <p style="margin: 0 0 10px 0;">Este formato de video no es compatible con tu navegador.</p>
-                <a id="vlc-link" href="#" style="background: white; color: #ef4444; padding: 5px 15px; border-radius: 5px; text-decoration: none; font-weight: bold;">Abrir en VLC Player</a>
+            <h1>Reproductor Visuales</h1>
+            <video id="player" controls crossorigin="anonymous" preload="metadata" playsinline>
+                Tu navegador no soporta video nativo.
+            </video>
+            <div id="error-box" class="error-box">
+                <p id="error-text">No se pudo cargar el video.</p>
+                <a id="vlc-link" href="#" class="vlc-btn">Abrir en VLC Player</a>
             </div>
             <div class="input-box">
-                <input type="text" id="streamUrl" placeholder="Pega aquí tu enlace de stream...">
-                <button onclick="loadVideo()">Cargar</button>
+                <input type="text" id="urlInput" placeholder="URL de stream...">
+                <button onclick="load()">Reproducir</button>
             </div>
         </div>
-        <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
         <script>
-            const player = videojs('player', {
-                fluid: true,
-                playbackRates: [0.5, 1, 1.5, 2],
-                userActions: { hotkeys: true }
-            });
+            const player = document.getElementById('player');
+            const errorBox = document.getElementById('error-box');
 
-            player.on('error', function() {
-                const error = player.error();
-                console.log("Video.js Error:", error);
-                document.getElementById('error-msg').style.display = 'block';
-            });
+            player.onerror = function() {
+                errorBox.style.display = 'block';
+                const code = player.error ? player.error.code : 'Desconocido';
+                document.getElementById('error-text').innerHTML = 'Error de reproducción (Código: ' + code + '). Puede ser por el formato (ej. MKV).';
+            };
 
-            function loadVideo() {
-                document.getElementById('error-msg').style.display = 'none';
-                const urlInput = document.getElementById('streamUrl').value.trim();
-                if (!urlInput) return;
+            function load() {
+                errorBox.style.display = 'none';
+                let url = document.getElementById('urlInput').value.trim();
+                if (!url) return;
+                if (!url.includes('s=1')) url += url.includes('?') ? '&s=1' : '?s=1';
                 
-                let finalUrl = urlInput;
-                if (!finalUrl.includes('s=1')) {
-                    finalUrl += finalUrl.includes('?') ? '&s=1' : '?s=1';
-                }
+                player.src = url;
+                player.load();
+                player.play().catch(e => console.log("Auto-play blocked"));
                 
-                let type = 'video/mp4';
-                if (finalUrl.includes('.webm')) type = 'video/webm';
-                if (finalUrl.includes('.mkv')) type = 'video/x-matroska';
-
-                player.src({ type: type, src: finalUrl });
-                player.play().catch(e => {
-                    console.log("Play error:", e);
-                });
-                
-                // Actualizar links externos
-                document.getElementById('vlc-link').href = 'vlc://' + finalUrl.replace(/^https?:\/\//, '');
+                document.getElementById('vlc-link').href = 'vlc://' + url.replace(/^https?:\/\//, '');
             }
 
             window.onload = function() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const streamUrl = urlParams.get('url');
-                if (streamUrl) {
-                    document.getElementById('streamUrl').value = streamUrl;
-                    setTimeout(loadVideo, 500);
+                const params = new URLSearchParams(window.location.search);
+                const url = params.get('url');
+                if (url) {
+                    document.getElementById('urlInput').value = url;
+                    load();
                 }
             };
         </script>
     </body>
     </html>
     """
-
     return web.Response(text=html_content, content_type="text/html")
 
 
@@ -288,6 +234,10 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
 
     disposition = "inline" if request.rel_url.query.get("s") else "attachment"
 
+    # Forzar MIME type para videos si es necesario
+    if not mime_type or "video" in mime_type:
+        mime_type = "video/mp4"
+
     headers = {
         "Content-Type": mime_type,
         "Content-Range": f"bytes {from_bytes}-{until_bytes}/{file_size}",
@@ -295,8 +245,8 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
         "Content-Disposition": f'{disposition}; filename="{file_name}"',
         "Accept-Ranges": "bytes",
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Range, Content-Type",
-        "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges",
+        "Connection": "keep-alive",
+        "Cache-Control": "public, max-age=3600",
     }
 
     response = web.StreamResponse(
