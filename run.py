@@ -5,14 +5,14 @@ from bot.config import CONFIG
 from bot.core.download_worker import download_file_worker
 from bot.core.upload_worker import upload_worker
 from bot.core.update_status import update_status_message
-from bot.commands.general import start_handler, status_handler
+from bot.commands.general import start_handler, status_handler, cancel_handler, cancel_callback_handler
 from bot.commands.server import server_status
 from bot.commands.torrents import torrent_handler
 from bot.commands.visuales import down_handler
 from bot.commands.download import download_handler
 from bot.commands.collection import add_handler, end_handler, collection_monitor_handler
 from bot.commands.stream_cmd import stream_handler, stream_media_handler
-from pyrogram.handlers import MessageHandler
+from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from pyrogram import filters
 from userbot.main import userbot_app
 from bot.stream.server import start_stream_server
@@ -38,6 +38,7 @@ async def setup_bot_commands(app: Client):
             "server_status", "Ver estado del servidor y recursos disponibles"
         ),
         types.BotCommand("stream", "Generar enlace de streaming para un archivo"),
+        types.BotCommand("cancel", "Cancelar una o todas las tareas activas y en cola"),
     ]
 
     try:
@@ -73,6 +74,8 @@ def setup_bots():
     app.add_handler(MessageHandler(start_handler, filters.command("start")))
 
     app.add_handler(MessageHandler(status_handler, filters.command("status")))
+    app.add_handler(MessageHandler(cancel_handler, filters.command("cancel")))
+    app.add_handler(CallbackQueryHandler(cancel_callback_handler, filters.regex(r"^cancel_")))
     app.add_handler(MessageHandler(server_status, filters.command("server_status")))
     app.add_handler(MessageHandler(download_handler, filters.command("dl")))
     app.add_handler(MessageHandler(down_handler, filters.command("down")))

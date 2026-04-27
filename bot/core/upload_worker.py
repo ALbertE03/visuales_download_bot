@@ -118,7 +118,7 @@ async def upload_worker(client: Client) -> None:
 
                 async def progress_callback(current: int, total: int) -> None:
                     if task_key not in CONFIG.status_data.value["active"]:
-                        return
+                        raise asyncio.CancelledError("Cancelado por el usuario")
                     
                     elapsed = time.time() - start_time
                     CONFIG.status_data.value["active"][task_key]["downloaded"] = current
@@ -144,6 +144,10 @@ async def upload_worker(client: Client) -> None:
                         CONFIG.LOGGER.value.info(CONSTANTS.LOG_UPLOAD_SUCCESS.format(filename=filename))
                         break
                     except Exception as e:
+                        if "Cancelado" in str(e):
+                            CONFIG.LOGGER.value.info(f"Subida de {filename} cancelada por el usuario.")
+                            raise e
+                        
                         if "call_exception_handler" in str(e) or "NoneType" in str(e):
                             CONFIG.LOGGER.value.warning(CONSTANTS.LOG_SESSION_ERROR.format(filename=filename))
                             await asyncio.sleep(10)
@@ -162,8 +166,16 @@ async def upload_worker(client: Client) -> None:
                     CONFIG.LOGGER.value.info(CONSTANTS.LOG_FILE_DELETED.format(filename=filename))
                     
             except Exception as e:
-                CONFIG.LOGGER.value.error(CONSTANTS.LOG_UPLOAD_ERROR.format(filename=filename, error=e))
-                CONFIG.status_data.value["failed"] += 1
+                if "Cancelado" in str(e):
+                    CONFIG.status_data.value["failed"] += 1
+                else:
+                    CONFIG.LOGGER.value.error(CONSTANTS.LOG_UPLOAD_ERROR.format(filename=filename, error=e))
+                    CONFIG.status_data.value["failed"] += 1
+                try:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                except Exception:
+                    pass
             finally:
                 if task_key in CONFIG.status_data.value["active"]:
                     del CONFIG.status_data.value["active"][task_key]

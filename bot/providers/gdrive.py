@@ -58,6 +58,9 @@ class GDriveProvider(BaseProvider):
         
         with open(file_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=1024*1024):
+                if task_key not in CONFIG.status_data.value["active"]:
+                    raise ValueError("Cancelado por el usuario")
+
                 if chunk:
                     f.write(chunk)
                     downloaded += len(chunk)

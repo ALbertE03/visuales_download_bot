@@ -56,6 +56,8 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
                     with open(file_path, 'wb') as f:
                         for chunk in response.iter_content(chunk_size=CONSTANTS.CHUNK_SIZE):
                             if chunk:
+                                if task_key not in CONFIG.status_data.value["active"]:
+                                    raise asyncio.CancelledError("Cancelado por el usuario")
                                 f.write(chunk)
                                 downloaded += len(chunk)
                                 
@@ -68,17 +70,28 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
                                     if elapsed > 1:
                                         CONFIG.status_data.value["active"][task_key]["speed"] = downloaded / elapsed
                 
-                asyncio.run_coroutine_threadsafe(
-                    upload_file(client, file_path, filename),
-                    loop
-                )
+                if task_key in CONFIG.status_data.value["active"]:
+                    asyncio.run_coroutine_threadsafe(
+                        upload_file(client, file_path, filename),
+                        loop
+                    )
                 
             except Exception as e:
-                CONFIG.LOGGER.value.error(CONSTANTS.LOG_ERROR_DOWNLOADING.format(filename=filename, error=e))
-                if retries < CONFIG.RETRY_MAX.value:
-                    CONFIG.download_queue.value.put((url, filename, retries + 1))
-                else:
+                if "Cancelado" in str(e):
+                    CONFIG.LOGGER.value.info(f"Tarea {filename} cancelada por el usuario.")
                     CONFIG.status_data.value["failed"] += 1
+                else:
+                    CONFIG.LOGGER.value.error(CONSTANTS.LOG_ERROR_DOWNLOADING.format(filename=filename, error=e))
+                    if retries < CONFIG.RETRY_MAX.value:
+                        CONFIG.download_queue.value.put((url, filename, retries + 1))
+                    else:
+                        CONFIG.status_data.value["failed"] += 1
+                
+                try:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                except Exception:
+                    pass
             finally:
                 if task_key in CONFIG.status_data.value["active"]:
                     del CONFIG.status_data.value["active"][task_key]

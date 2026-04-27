@@ -17,6 +17,9 @@ class YoutubeDLProvider(BaseProvider):
         ydl_opts["outtmpl"] = f"{destination}/%(title)s.%(ext)s"
 
         def progress_hook(d):
+            if task_key not in CONFIG.status_data.value["active"]:
+                raise ValueError("Cancelado por el usuario")
+
             if d['status'] == 'downloading':
                 total = d.get('total_bytes') or d.get('total_bytes_estimate') or 0
                 downloaded = d.get('downloaded_bytes', 0)

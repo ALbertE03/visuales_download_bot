@@ -60,6 +60,14 @@ def download_torrent(client, loop, source, chat_id=None):
         if task_key not in CONFIG.status_data.value["active"]:
             CONFIG.LOGGER.value.info(CONSTANTS.LOG_TORRENT_EXITING)
             ses.remove_torrent(handle)
+            file_path = os.path.join(CONFIG.DOWNLOAD_DIR.value, filename)
+            try:
+                import shutil
+                if os.path.isdir(file_path):
+                    shutil.rmtree(file_path, ignore_errors=True)
+                elif os.path.isfile(file_path):
+                    os.remove(file_path)
+            except: pass
             return
         CONFIG.LOGGER.value.info(CONSTANTS.LOG_TORRENT_METADATA_WAIT)
 
@@ -112,6 +120,14 @@ def download_torrent(client, loop, source, chat_id=None):
 
         if task_key not in CONFIG.status_data.value["active"]:
             ses.remove_torrent(handle)
+            file_path = os.path.join(CONFIG.DOWNLOAD_DIR.value, filename)
+            try:
+                import shutil
+                if os.path.isdir(file_path):
+                    shutil.rmtree(file_path, ignore_errors=True)
+                elif os.path.isfile(file_path):
+                    os.remove(file_path)
+            except: pass
             return
 
         time.sleep(2)
