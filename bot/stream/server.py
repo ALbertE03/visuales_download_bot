@@ -211,5 +211,5 @@ async def start_stream_server(client):
     await runner.setup()
     await web.TCPSite(runner, StreamConfig.BIND_ADDRESS, StreamConfig.PORT).start()
 
-    logger.info("Servidor de streaming iniciado en %s", StreamConfig.URL)
+    logger.info(f"Servidor de streaming iniciado en {StreamConfig.URL}")
     return runner
