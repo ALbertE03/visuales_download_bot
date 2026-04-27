@@ -45,7 +45,8 @@ class CONSTANTS:
         "<code>/stream</code> - Genera enlace de streaming para un archivo\n"
         "<code>/add</code> - Inicia recolección de archivos (Zip)\n"
         "<code>/end</code> - Finaliza recolección\n"
-        "<code>/status</code> - Abre el Panel de Control"
+        "<code>/status</code> - Abre el Panel de Control\n"
+        "<code>/cancel</code> - Administrar cancelaciones de tareas"
         "</blockquote>\n"
         "<i>Nota: También puedes enviar un archivo .torrent directamente.</i>"
     )

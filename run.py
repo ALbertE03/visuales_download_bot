@@ -103,6 +103,7 @@ def setup_bots():
                     "torrent",
                     "server_status",
                     "stream",
+                    "cancel",
                 ]
             ),
         ),
