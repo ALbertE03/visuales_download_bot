@@ -90,19 +90,17 @@ class PyrogramStreamer:
 
         try:
             # Obtener sesión para el DC correcto
-            logger.debug(f"Conectando al DC {dc_id}...")
+            logger.info(f"Pidiendo sesión para DC {dc_id} (Media: True)...")
             session = await self.client.get_session(dc_id, is_media=True)
-            
-            # Asegurar conexión
-            if not session.is_connected:
-                await session.connect()
+            logger.info(f"Sesión obtenida para DC {dc_id}")
 
             current_part = 1
             current_offset = offset
 
-            logger.debug(f"Iniciando petición raw a Telegram (offset: {offset})")
+            logger.info(f"Streaming iniciado: Offset={offset}, Partes={part_count}, Chunks={chunk_size}")
 
             while current_part <= part_count:
+                logger.info(f"Solicitando parte {current_part}/{part_count} (Offset: {current_offset})...")
                 result = await session.invoke(
                     raw.functions.upload.GetFile(
                         location=location,
@@ -111,6 +109,7 @@ class PyrogramStreamer:
                     ),
                     sleep_threshold=30,
                 )
+
 
                 if not isinstance(result, raw.types.upload.File) or not result.bytes:
                     break
