@@ -234,10 +234,20 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
     disposition = "inline" if request.rel_url.query.get("s") else "attachment"
 
     # Forzar MIME type para videos si es necesario
-    video_extensions = (".mp4", ".m4v", ".mkv", ".webm", ".mov", ".avi")
-    is_video_ext = any(file_name.lower().endswith(ext) for ext in video_extensions)
+    import os
+    ext = os.path.splitext(file_name.lower())[1]
+    video_mimes = {
+        ".mp4": "video/mp4",
+        ".m4v": "video/x-m4v",
+        ".mkv": "video/x-matroska",
+        ".webm": "video/webm",
+        ".mov": "video/quicktime",
+        ".avi": "video/x-msvideo"
+    }
 
-    if is_video_ext or (mime_type and "video" in mime_type):
+    if ext in video_mimes:
+        mime_type = video_mimes[ext]
+    elif mime_type and "video" in mime_type:
         mime_type = "video/mp4"
 
     headers = {
