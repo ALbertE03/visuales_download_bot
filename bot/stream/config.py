@@ -8,7 +8,7 @@ class StreamConfig:
     BIND_ADDRESS: str = st.secrets.get("STREAM_BIND", "0.0.0.0")
     BIN_CHANNEL: int = int(st.secrets.get("STREAM_BIN_CHANNEL", "-1003726563984"))
     HASH_LENGTH: int = int(st.secrets.get("STREAM_HASH_LENGTH", 6))
-    CHUNK_SIZE: int = 256 * 1024  # 256KB (más rápido para inicio de video)
+    CHUNK_SIZE: int = 1024 * 1024
     CACHE_SIZE: int = 128
     REQUEST_LIMIT: int = 5
 
@@ -20,4 +20,3 @@ class StreamConfig:
     def update_url(cls, new_url: str):
         """Actualiza la URL pública (usado por el túnel)."""
         cls.URL = new_url.rstrip("/") + "/"
-

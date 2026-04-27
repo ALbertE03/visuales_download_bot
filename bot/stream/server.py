@@ -155,7 +155,6 @@ async def watch_handler(request: web.Request):
     return web.Response(text=html_content, content_type="text/html")
 
 
-
 @routes.get(r"/stream/{messageID:\d+}", allow_head=True)
 async def stream_handler(request: web.Request):
     try:
@@ -235,7 +234,10 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
     disposition = "inline" if request.rel_url.query.get("s") else "attachment"
 
     # Forzar MIME type para videos si es necesario
-    if not mime_type or "video" in mime_type:
+    video_extensions = (".mp4", ".m4v", ".mkv", ".webm", ".mov", ".avi")
+    is_video_ext = any(file_name.lower().endswith(ext) for ext in video_extensions)
+
+    if is_video_ext or (mime_type and "video" in mime_type):
         mime_type = "video/mp4"
 
     headers = {
@@ -267,7 +269,6 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
         _ongoing_requests[ip] -= 1
 
     return response
-
 
 
 async def start_stream_server(client):
