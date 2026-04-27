@@ -11,9 +11,13 @@ from bot.commands.torrents import torrent_handler
 from bot.commands.visuales import down_handler
 from bot.commands.download import download_handler
 from bot.commands.collection import add_handler, end_handler, collection_monitor_handler
+from bot.commands.stream_cmd import stream_handler, stream_media_handler
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
 from userbot.main import userbot_app
+from bot.stream.server import start_stream_server
+from bot.stream.tunnel import start_cloudflare_tunnel
+from bot.stream.config import StreamConfig
 
 
 async def setup_bot_commands(app: Client):
@@ -33,6 +37,7 @@ async def setup_bot_commands(app: Client):
         types.BotCommand(
             "server_status", "Ver estado del servidor y recursos disponibles"
         ),
+        types.BotCommand("stream", "Generar enlace de streaming para un archivo"),
     ]
 
     try:
@@ -80,6 +85,7 @@ def setup_bots():
     )
     app.add_handler(MessageHandler(add_handler, filters.command("add")))
     app.add_handler(MessageHandler(end_handler, filters.command("end")))
+    app.add_handler(MessageHandler(stream_handler, filters.command("stream")))
     app.add_handler(
         MessageHandler(
             collection_monitor_handler,
@@ -93,6 +99,7 @@ def setup_bots():
                     "down",
                     "torrent",
                     "server_status",
+                    "stream",
                 ]
             ),
         ),
@@ -137,6 +144,27 @@ def setup_bots():
             await userbot_app.start()
 
             await setup_bot_commands(app)
+
+            try:
+                if "localhost" in StreamConfig.URL or "127.0.0.1" in StreamConfig.URL:
+                    CONFIG.LOGGER.value.info("Iniciando túnel de Cloudflare...")
+                    tunnel_url, _ = start_cloudflare_tunnel(StreamConfig.PORT)
+                    if tunnel_url:
+                        StreamConfig.update_url(tunnel_url)
+                        CONFIG.LOGGER.value.info(
+                            f"URL del Bot actualizada a: {StreamConfig.URL}"
+                        )
+                    else:
+                        CONFIG.LOGGER.value.warning(
+                            "No se pudo iniciar el túnel, se usará la URL local."
+                        )
+
+                await start_stream_server(app)
+                CONFIG.LOGGER.value.info(
+                    f"Servidor de streaming activo en: {StreamConfig.URL}"
+                )
+            except Exception as e:
+                CONFIG.LOGGER.value.error(f"Error iniciando servidor de stream: {e}")
 
         loop.run_until_complete(start_clients())
         loop.run_forever()

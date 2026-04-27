@@ -104,6 +104,7 @@ def download_torrent(client, loop, source, chat_id=None):
                         )
                     if task_key in CONFIG.status_data.value["active"]:
                         del CONFIG.status_data.value["active"][task_key]
+                        CONFIG.status_data.value["failed"] += 1
                     ses.remove_torrent(handle)
                     return
         else:

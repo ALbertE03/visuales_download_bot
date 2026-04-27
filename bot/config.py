@@ -25,6 +25,9 @@ class CONFIG(Enum):
     EXPLORER_CACHE_DB: str = CONSTANTS.EXPLORER_CACHE_DB
     FORMATS: tuple = CONSTANTS.VIDEO_FORMATS
 
+    STREAM_BIN_CHANNEL: int = int(st.secrets.get("STREAM_BIN_CHANNEL", "-1003726563984"))
+    STREAM_PORT: int = int(st.secrets.get("STREAM_PORT", 8080))
+
     CANT_WORKER: int = 2
     UPLOAD_WORKER: int = 2
     RETRY_MAX: int = 3

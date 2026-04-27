@@ -39,9 +39,9 @@ async def update_status_message(client: Client) -> None:
                     else:
                         lines.append(CONSTANTS.PANEL_NO_TASKS)
                 else:
-                    MAX_VISIBLE_TASKS = 5
+                    max_task = CONFIG.MAX_VISIBLE_TASKS
                     for i, data in enumerate(active_list):
-                        if i >= MAX_VISIBLE_TASKS:
+                        if i >= max_task:
                             lines.append(
                                 f"<blockquote><i>... y {len(active_list) - i} tareas más activas.</i></blockquote>"
                             )
@@ -134,7 +134,9 @@ async def update_status_message(client: Client) -> None:
                         last_text = txt
                         last_message_id = current_status_msg.id
                     except pyrogram.errors.FloodWait as e:
-                        CONFIG.LOGGER.value.warning(f"FloodWait detectado: esperando {e.value} segundos...")
+                        CONFIG.LOGGER.value.warning(
+                            f"FloodWait detectado: esperando {e.value} segundos..."
+                        )
                         await asyncio.sleep(e.value)
                     except Exception as e:
                         error_str = str(e)
