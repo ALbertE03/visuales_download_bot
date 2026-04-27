@@ -169,7 +169,13 @@ async def watch_handler(request: web.Request):
                     finalUrl += finalUrl.includes('?') ? '&s=1' : '?s=1';
                 }
                 
-                player.src({ type: 'video/mp4', src: finalUrl });
+                // Intentar detectar el tipo por la extensión en la URL
+                let type = 'video/mp4';
+                if (finalUrl.includes('.webm')) type = 'video/webm';
+                if (finalUrl.includes('.ogg')) type = 'video/ogg';
+                if (finalUrl.includes('.mkv')) type = 'video/x-matroska';
+
+                player.src({ type: type, src: finalUrl });
                 player.play().catch(e => console.log("Play error:", e));
             }
 
@@ -277,19 +283,25 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
         "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges",
     }
 
-    response = web.Response(
+    response = web.StreamResponse(
         status=206 if range_header or request.http_range.start is not None else 200,
-        body=body,
+        reason="Partial Content" if range_header else "OK",
         headers=headers,
     )
 
-    if not head:
-        response.task = None
+    await response.prepare(request)
 
-        async def on_response_complete(_response):
-            _ongoing_requests[ip] -= 1
+    try:
+        if body:
+            async for chunk in body:
+                await response.write(chunk)
+    except (ConnectionResetError, ConnectionAbortedError):
+        logger.info(f"Conexión cerrada por el cliente: {ip}")
+    finally:
+        _ongoing_requests[ip] -= 1
 
     return response
+
 
 
 async def start_stream_server(client):
