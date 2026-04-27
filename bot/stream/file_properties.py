@@ -15,7 +15,7 @@ class FileInfo:
     file_size: int
     mime_type: str
     file_name: str
-    file_id: str  # Pyrogram file_id string (codifica DC, access_hash, etc.)
+    file_id: str 
     message_id: int
 
 
@@ -49,7 +49,6 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
             message_id=message.id,
         )
     elif message.photo:
-        # Tomar la resolución más alta
         photo = message.photo
         return FileInfo(
             file_size=photo.file_size,

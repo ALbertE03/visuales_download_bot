@@ -5,7 +5,7 @@ El usuario envía un archivo al bot → se reenvía al BIN_CHANNEL → genera li
 
 import logging
 from pyrogram import Client
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions
+from pyrogram.types import Message, InlineKeyboardButton
 from bot.stream.config import StreamConfig
 from bot.stream.file_properties import get_file_info, pack_file, get_short_hash
 
@@ -59,18 +59,14 @@ async def stream_handler(client: Client, message: Message):
         # Determinar si es media reproducible
         is_media = any(m in (file_info.mime_type or "") for m in STREAMABLE_MIMES)
 
-        # Construir botones - SOLO VER ONLINE
-        buttons = []
+       
         if is_media:
-            buttons.append([InlineKeyboardButton("▶️ Copiar o Ver en VLC", url=stream_link)])
-            text = f"<b>Enlace Directo:</b>\n<code>{stream_link}</code>"
+            text = f"\n<code>{stream_link}</code>\n\n<i>Reproducible en VLC</i>"
         else:
             text = f"🔗 <code>{stream_link}</code>"
 
         await status_msg.edit_text(
-            text,
-            reply_markup=InlineKeyboardMarkup(buttons) if buttons else None,
-            link_preview_options=LinkPreviewOptions(is_disabled=True),
+            text
         )
 
 
