@@ -5,7 +5,7 @@ El usuario envía un archivo al bot → se reenvía al BIN_CHANNEL → genera li
 
 import logging
 from pyrogram import Client
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions
 from bot.stream.config import StreamConfig
 from bot.stream.file_properties import get_file_info, pack_file, get_short_hash
 
@@ -59,24 +59,22 @@ async def stream_handler(client: Client, message: Message):
         # Determinar si es media reproducible
         is_media = any(m in (file_info.mime_type or "") for m in STREAMABLE_MIMES)
 
-        # Construir botones
-        buttons = [[InlineKeyboardButton("📥 Descargar", url=stream_link)]]
-        text = f"<code>{stream_link}</code>"
-
+        # Construir botones - SOLO VER ONLINE
+        buttons = []
         if is_media:
             watch_link = f"{StreamConfig.URL}watch?url={stream_link}&s=1"
-            stream_inline = stream_link + "&s=1"
             buttons.append([InlineKeyboardButton("▶️ Ver Online", url=watch_link)])
-            buttons.append(
-                [InlineKeyboardButton("🔗 Stream Directo", url=stream_inline)]
-            )
-            text += f"\n<a href='{watch_link}'>Ver Online</a> | <a href='{stream_inline}'>Stream</a>"
+            text = "<b>Reproductor listo para ver online:</b>"
+        else:
+            text = f"🔗 <code>{stream_link}</code>"
 
         await status_msg.edit_text(
             text,
-            reply_markup=InlineKeyboardMarkup(buttons),
-            disable_web_page_preview=True,
+            reply_markup=InlineKeyboardMarkup(buttons) if buttons else None,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
+
+
 
         logger.info("Stream link generado: %s (msg_id=%s)", stream_link, forwarded.id)
 

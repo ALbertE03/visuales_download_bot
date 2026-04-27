@@ -189,7 +189,7 @@ async def stream_handler(request: web.Request):
         secure_hash = request.rel_url.query.get("hash")
         return await media_streamer(request, message_id, secure_hash)
     except (AttributeError, BadStatusLine, ConnectionResetError):
-        pass
+        return web.Response(status=204)
     except Exception as e:
         logger.critical(str(e), exc_info=True)
         raise web.HTTPInternalServerError(text=str(e))
