@@ -90,10 +90,17 @@ class PyrogramStreamer:
 
         try:
             # Obtener sesión para el DC correcto
+            logger.debug(f"Conectando al DC {dc_id}...")
             session = await self.client.get_session(dc_id, is_media=True)
+            
+            # Asegurar conexión
+            if not session.is_connected:
+                await session.connect()
 
             current_part = 1
             current_offset = offset
+
+            logger.debug(f"Iniciando petición raw a Telegram (offset: {offset})")
 
             while current_part <= part_count:
                 result = await session.invoke(
