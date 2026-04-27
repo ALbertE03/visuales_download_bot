@@ -62,9 +62,8 @@ async def stream_handler(client: Client, message: Message):
         # Construir botones - SOLO VER ONLINE
         buttons = []
         if is_media:
-            watch_link = f"{StreamConfig.URL}watch?url={stream_link}&s=1"
-            buttons.append([InlineKeyboardButton("▶️ Ver Online", url=watch_link)])
-            text = "<b>Reproductor listo para ver online:</b>"
+            buttons.append([InlineKeyboardButton("▶️ Copiar o Ver en VLC", url=stream_link)])
+            text = f"<b>Enlace Directo:</b>\n<code>{stream_link}</code>"
         else:
             text = f"🔗 <code>{stream_link}</code>"
 
