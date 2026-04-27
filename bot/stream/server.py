@@ -204,6 +204,8 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
     if _streamer is None:
         return web.Response(status=503, text="Servidor de streaming no inicializado")
 
+    logger.info(f"Petición de stream: ID={message_id} | IP={ip} | Range={range_header}")
+
     # Obtener propiedades del archivo
     file_info = await _streamer.get_file_properties(message_id)
     if not file_info:

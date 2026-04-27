@@ -128,7 +128,7 @@ class PyrogramStreamer:
                 else:
                     yield chunk
 
-                logger.debug(
+                logger.info(
                     "Chunk %s/%s descargado (total %s)",
                     current_part,
                     last_part,
@@ -136,7 +136,7 @@ class PyrogramStreamer:
                 )
                 current_part += 1
 
-            logger.debug("Streaming completado")
+            logger.info("Streaming completado")
 
         except (GeneratorExit, StopAsyncIteration):
             logger.debug("Streaming interrumpido por el cliente")
