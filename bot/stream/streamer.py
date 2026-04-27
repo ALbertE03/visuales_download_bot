@@ -9,7 +9,7 @@ from pyrogram.file_id import FileId, FileType, PHOTO_TYPES
 from bot.stream.config import StreamConfig
 from bot.stream.file_properties import FileInfo, get_file_info_by_id
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("visuales_bot")
 
 
 class PyrogramStreamer:

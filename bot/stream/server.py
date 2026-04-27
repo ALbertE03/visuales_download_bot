@@ -11,7 +11,7 @@ from bot.stream.config import StreamConfig
 from bot.stream.file_properties import pack_file, get_short_hash
 from bot.stream.streamer import PyrogramStreamer
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("visuales_bot")
 
 routes = web.RouteTableDef()
 
@@ -200,6 +200,7 @@ async def stream_handler(request: web.Request):
     try:
         message_id = int(request.match_info["messageID"])
         secure_hash = request.rel_url.query.get("hash")
+        logger.info(f"--- Recibida petición HTTP para /stream/{message_id} ---")
         return await media_streamer(request, message_id, secure_hash)
     except (AttributeError, BadStatusLine, ConnectionResetError):
         return web.Response(status=204)
