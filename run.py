@@ -11,7 +11,7 @@ from bot.commands.torrents import torrent_handler
 from bot.commands.visuales import down_handler
 from bot.commands.download import download_handler
 from bot.commands.collection import add_handler, end_handler, collection_monitor_handler
-from bot.commands.stream_cmd import stream_handler, stream_media_handler
+from bot.commands.stream_cmd import stream_handler
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from pyrogram import filters
 from userbot.main import userbot_app
