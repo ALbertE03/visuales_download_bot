@@ -1,11 +1,8 @@
-"""
-Comando /stream para generar links de streaming.
-El usuario envía un archivo al bot → se reenvía al BIN_CHANNEL → genera link.
-"""
+
 
 import logging
 from pyrogram import Client
-from pyrogram.types import Message, InlineKeyboardButton
+from pyrogram.types import Message
 from bot.stream.config import StreamConfig
 from bot.stream.file_properties import get_file_info, pack_file, get_short_hash
 
@@ -61,7 +58,7 @@ async def stream_handler(client: Client, message: Message):
 
        
         if is_media:
-            text = f"\n<code>{stream_link}</code>\n\n<i>Reproducible en VLC</i>"
+            text = f"\n<code>{stream_link}</code>"
         else:
             text = f"🔗 <code>{stream_link}</code>"
 

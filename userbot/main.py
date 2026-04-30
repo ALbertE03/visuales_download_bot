@@ -45,6 +45,7 @@ userbot_app.add_handler(
         auto_transcribe_private,
         filters.private
         & ~filters.me
+        & ~filters.chat("MusicsHuntersbot")
         & (
             filters.voice
             | filters.video_note
