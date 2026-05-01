@@ -101,7 +101,7 @@ class CONSTANTS:
     LOG_TORRENT_START = "Iniciando descarga de torrent: {filename}"
     LOG_TORRENT_FINISHED = "Torrent {filename} descargado completamente."
     LOG_TORRENT_FOLDER = (
-        "Torrent {filename} es una carpeta, filtrando videos para subir..."
+        "Torrent {filename} es una carpeta, preparando para subir contenidos..."
     )
     LOG_TORRENT_METADATA_WAIT = "Esperando metadata..."
     LOG_TORRENT_METADATA_TIMEOUT = (

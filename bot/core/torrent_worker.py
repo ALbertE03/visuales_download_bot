@@ -136,30 +136,18 @@ def download_torrent(client, loop, source, chat_id=None):
 
     file_path = os.path.join(CONFIG.DOWNLOAD_DIR.value, filename)
 
-    video_extensions = CONFIG.FORMATS.value
-
     if os.path.isdir(file_path):
         CONFIG.LOGGER.value.info(CONSTANTS.LOG_TORRENT_FOLDER.format(filename=filename))
         for root, dirs, files in os.walk(file_path):
             for file in files:
-                if file.lower().endswith(video_extensions):
-                    full_path = os.path.join(root, file)
-                    asyncio.run_coroutine_threadsafe(
-                        upload_file(client, full_path, file), loop
-                    )
-                else:
-                    CONFIG.LOGGER.value.info(
-                        CONSTANTS.LOG_SKIP_NON_VIDEO.format(file=file)
-                    )
+                full_path = os.path.join(root, file)
+                asyncio.run_coroutine_threadsafe(
+                    upload_file(client, full_path, file), loop
+                )
     else:
-        if filename.lower().endswith(video_extensions):
-            asyncio.run_coroutine_threadsafe(
-                upload_file(client, file_path, filename), loop
-            )
-        else:
-            CONFIG.LOGGER.value.info(
-                CONSTANTS.LOG_SKIP_TORRENT_NON_VIDEO.format(filename=filename)
-            )
+        asyncio.run_coroutine_threadsafe(
+            upload_file(client, file_path, filename), loop
+        )
 
     if task_key in CONFIG.status_data.value["active"]:
         del CONFIG.status_data.value["active"][task_key]
