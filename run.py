@@ -134,16 +134,28 @@ def setup_bots():
         original_create_task = asyncio.create_task
         original_loop_create_task = loop.create_task
 
+        def task_done_callback(task):
+            background_tasks.discard(task)
+            try:
+                if not task.cancelled() and task.exception():
+                    exc = task.exception()
+                    if isinstance(exc, TimeoutError) and "GetChannelDifference" in str(exc):
+                        pass
+                    else:
+                        CONFIG.LOGGER.value.debug(f"Tarea en background terminó con error: {exc}")
+            except Exception:
+                pass
+
         def create_task_patch(coro, *args, **kwargs):
             task = original_create_task(coro, *args, **kwargs)
             background_tasks.add(task)
-            task.add_done_callback(background_tasks.discard)
+            task.add_done_callback(task_done_callback)
             return task
 
         def loop_create_task_patch(coro, *args, **kwargs):
             task = original_loop_create_task(coro, *args, **kwargs)
             background_tasks.add(task)
-            task.add_done_callback(background_tasks.discard)
+            task.add_done_callback(task_done_callback)
             return task
 
         asyncio.create_task = create_task_patch
