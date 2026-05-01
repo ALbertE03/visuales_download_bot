@@ -23,25 +23,22 @@ class CloudflareTunnel:
         """Determina la ruta del binario y lo descarga si es necesario."""
         local_bin = os.path.join(os.getcwd(), "bin", "cloudflared")
         
-        # Si ya existe en la carpeta local, usar ese
         if os.path.exists(local_bin):
             return local_bin
             
-        # Verificar si está instalado en el sistema
+    
         try:
             subprocess.check_call(["cloudflared", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             return "cloudflared"
         except (subprocess.CalledProcessError, FileNotFoundError):
             pass
             
-        # Si no está, descargarlo (especialmente para Streamlit Cloud)
         os.makedirs(os.path.dirname(local_bin), exist_ok=True)
         
         system = platform.system().lower()
         machine = platform.machine().lower()
         
-        # Mapeo de arquitecturas para los binarios de Cloudflare
-        # https://github.com/cloudflare/cloudflared/releases
+     
         url = "https://github.com/cloudflare/cloudflared/releases/latest/download/"
         
         if system == "linux":
@@ -51,15 +48,15 @@ class CloudflareTunnel:
                 url += "cloudflared-linux-arm"
             else:
                 url += "cloudflared-linux-amd64"
-        elif system == "darwin": # Mac
+        elif system == "darwin":
             url += "cloudflared-darwin-amd64"
         else:
-            return "cloudflared" # Revertir al default y esperar lo mejor
+            return "cloudflared" 
 
         logger.info(f"Descargando cloudflared desde {url}...")
         try:
             urllib.request.urlretrieve(url, local_bin)
-            # Dar permisos de ejecución
+
             st = os.stat(local_bin)
             os.chmod(local_bin, st.st_mode | stat.S_IEXEC)
             logger.info("cloudflared descargado con éxito")
@@ -102,12 +99,12 @@ class CloudflareTunnel:
             if not line:
                 break
 
-            # Buscamos el patrón: https://*.trycloudflare.com
+
             match = re.search(r"https://[a-zA-Z0-9-]+\.trycloudflare\.com", line)
             if match:
                 self.url = match.group(0)
                 logger.info(f"¡Túnel creado con éxito! URL pública: {self.url}")
-                # Iniciamos un hilo para que el proceso siga corriendo sin bloquear
+        
                 threading.Thread(target=self._monitor_tunnel, daemon=True).start()
                 return self.url
 
