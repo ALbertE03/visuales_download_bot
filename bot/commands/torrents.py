@@ -12,13 +12,15 @@ async def torrent_handler(client: Client, message: Message) -> None:
     
     # Si es un comando /torrent <magnet>
     if message.command and message.command[0] == "torrent":
-        if len(message.command) < 2:
+        if len(message.command) < 2 and not message.document:
             await message.reply(CONSTANTS.MSG_CMD_TORRENT_USAGE)
             return
-        magnet_link = message.text.split(None, 1)[1].strip()
-        if not magnet_link.startswith("magnet:?xt=urn:btih:"):
-            await message.reply(CONSTANTS.MSG_INVALID_MAGNET)
-            return
+        if len(message.command) >= 2:
+            text = message.text or message.caption
+            magnet_link = text.split(None, 1)[1].strip()
+            if not magnet_link.startswith("magnet:?xt=urn:btih:"):
+                await message.reply(CONSTANTS.MSG_INVALID_MAGNET)
+                return
     
     # Si es un archivo .torrent subido
     if message.document and message.document.file_name.endswith(".torrent"):

@@ -79,11 +79,17 @@ def setup_bots():
     app.add_handler(MessageHandler(server_status, filters.command("server_status")))
     app.add_handler(MessageHandler(download_handler, filters.command("dl")))
     app.add_handler(MessageHandler(down_handler, filters.command("down")))
+    torrent_filter = filters.create(
+        lambda _, __, message: bool(
+            message.document and 
+            message.document.file_name and 
+            message.document.file_name.endswith(".torrent")
+        )
+    )
     app.add_handler(
         MessageHandler(
             torrent_handler,
-            filters.command("torrent")
-            | (filters.document & filters.regex(r".*\.torrent$")),
+            filters.command("torrent") | torrent_filter,
         )
     )
     app.add_handler(MessageHandler(add_handler, filters.command("add")))
