@@ -3,7 +3,7 @@ import math
 import asyncio
 from collections import OrderedDict
 from typing import AsyncGenerator, Optional
-
+import time
 from pyrogram import Client, raw
 from pyrogram.file_id import FileId, PHOTO_TYPES
 
@@ -87,15 +87,19 @@ class PyrogramStreamer:
             current_part = 1
             current_offset = offset
             
-            # Rate limiting logic
-            import time
+            # Rate limiting logic - patrón de ventanas: esperar 60s, enviar 50s de buffer
             start_time = time.time()
             bytes_sent = 0
-            avg_bytes_per_sec = 0
-            buffer_bytes = 0
-            if getattr(file_info, "duration", 0) and file_info.duration > 0:
-                avg_bytes_per_sec = file_info.file_size / file_info.duration
-                buffer_bytes = avg_bytes_per_sec * 60  # 1 minute buffer
+            duration = getattr(file_info, "duration", 0)
+            if duration and duration > 0:
+                avg_bytes_per_sec = file_info.file_size / duration
+            else:
+                avg_bytes_per_sec = 1.5 * 1024 * 1024  # 1.5 MB/s default
+            
+            buffer_seconds = 60  # 60 segundos de buffer a enviar
+            buffer_bytes = avg_bytes_per_sec * buffer_seconds
+            window_wait_seconds = 50  # 50 segundos de espera entre ventanas
+            last_window_start = start_time
 
             while current_part <= part_count:
                 chunk = await global_chunk_cache.get(file_info.file_id, current_offset)
@@ -153,15 +157,16 @@ class PyrogramStreamer:
                 elif current_part == part_count:
                     chunk_to_yield = chunk[:last_part_cut]
 
-                # Rate limiting 
+                # Rate limiting - patrón de ventanas: enviar 50s, esperar 60s
                 if avg_bytes_per_sec > 0:
-                    elapsed = time.time() - start_time
-                    expected_bytes_played = avg_bytes_per_sec * elapsed
-                    if bytes_sent > expected_bytes_played + buffer_bytes:
-                        sleep_time = (bytes_sent - buffer_bytes - expected_bytes_played) / avg_bytes_per_sec
-                        if sleep_time > 0:
-                            import asyncio
-                            await asyncio.sleep(min(sleep_time, 5.0))
+                    elapsed_this_window = time.time() - last_window_start
+                    # Si hemos enviado más de 60s de buffer en esta ventana
+                    if bytes_sent >= buffer_bytes:
+                        logger.debug("Ventana de 60s completada, esperando 50s...")
+                        await asyncio.sleep(window_wait_seconds)
+                        # Resetear para nueva ventana
+                        last_window_start = time.time()
+                        bytes_sent = 0
                 
                 bytes_sent += len(chunk_to_yield)
                 yield chunk_to_yield

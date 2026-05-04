@@ -81,7 +81,7 @@ async def stream_handler(request: web.Request):
         secure_hash = request.rel_url.query.get("hash")
         logger.info(f"--- Recibida petición HTTP para /stream/{message_id} ---")
         return await media_streamer(request, message_id, secure_hash)
-    except (AttributeError, BadStatusLine, ConnectionResetError):
+    except (AttributeError, BadStatusLine, ConnectionResetError, ConnectionAbortedError, ConnectionError):
         return web.Response(status=204)
     except Exception as e:
         logger.critical(str(e), exc_info=True)
@@ -192,7 +192,7 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
         if body:
             async for chunk in body:
                 await response.write(chunk)
-    except (ConnectionResetError, ConnectionAbortedError):
+    except (ConnectionResetError, ConnectionAbortedError, ConnectionError):
         logger.info(f"Conexión cerrada por el cliente: {ip}")
     finally:
         _ongoing_requests[ip] -= 1
