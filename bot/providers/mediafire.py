@@ -17,8 +17,8 @@ class MediaFireProvider(BaseProvider):
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 html = await response.text()
-                # Buscar el link directo en el HTML
-                match = re.search(r'href="([^"]+)" id="downloadButton"', html)
+                # Buscar el link directo en el HTML (MediaFire rotea los IDs y Clases)
+                match = re.search(r'href\s*=\s*["\'](https?://download[^"\']+mediafire\.com/[^"\']+)["\']', html)
                 if match:
                     return match.group(1)
                 raise Exception("No se pudo encontrar el enlace de descarga directo de MediaFire.")
@@ -26,8 +26,8 @@ class MediaFireProvider(BaseProvider):
     async def download(self, url: str, destination: str, task_key: str) -> Tuple[str, str]:
         direct_link = await self.get_direct_link(url)
         
-        # Extraer nombre del archivo
-        filename = urllib.parse.unquote(direct_link.split("/")[-1])
+        # Extraer nombre del archivo y reparar codificación
+        filename = urllib.parse.unquote_plus(direct_link.split("/")[-1])
         file_path = os.path.join(destination, filename)
 
         async with aiohttp.ClientSession() as session:

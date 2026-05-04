@@ -23,4 +23,5 @@ dependencies = [
     "pymongo>=4.17.0",
     "scikit-learn>=1.8.0",
     "aiohttp>=3.13.5",
+    "mediafire>=0.6.1",
 ]
