@@ -96,3 +96,8 @@ def split_file(file_path: str, chunk_size_mb: int = 1900) -> list[str]:
 
     output_parts.sort()
     return output_parts
+
+
+def is_allowed(user_id: int) -> bool:
+    """Verifica si un usuario tiene permisos para usar el bot."""
+    return user_id in CONFIG.ALLOWED_USERS.value

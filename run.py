@@ -5,6 +5,7 @@ from bot.config import CONFIG
 from bot.core.download_worker import download_file_worker
 from bot.core.upload_worker import upload_worker
 from bot.core.update_status import update_status_message
+from bot.utils import is_allowed
 from bot.commands.general import start_handler, status_handler, cancel_handler, cancel_callback_handler
 from bot.commands.server import server_status
 from bot.commands.torrents import torrent_handler
@@ -71,14 +72,16 @@ def setup_bots():
         max_concurrent_transmissions=2,
     )
 
-    app.add_handler(MessageHandler(start_handler, filters.command("start")))
+    auth_filter = filters.create(lambda _, __, m: is_allowed(m.from_user.id) if m.from_user else False)
 
-    app.add_handler(MessageHandler(status_handler, filters.command("status")))
-    app.add_handler(MessageHandler(cancel_handler, filters.command("cancel")))
-    app.add_handler(CallbackQueryHandler(cancel_callback_handler, filters.regex(r"^cancel_")))
-    app.add_handler(MessageHandler(server_status, filters.command("server_status")))
-    app.add_handler(MessageHandler(download_handler, filters.command("dl")))
-    app.add_handler(MessageHandler(down_handler, filters.command("down")))
+    app.add_handler(MessageHandler(start_handler, filters.command("start") & auth_filter))
+
+    app.add_handler(MessageHandler(status_handler, filters.command("status") & auth_filter))
+    app.add_handler(MessageHandler(cancel_handler, filters.command("cancel") & auth_filter))
+    app.add_handler(CallbackQueryHandler(cancel_callback_handler, filters.regex(r"^cancel_") & auth_filter))
+    app.add_handler(MessageHandler(server_status, filters.command("server_status") & auth_filter))
+    app.add_handler(MessageHandler(download_handler, filters.command("dl") & auth_filter))
+    app.add_handler(MessageHandler(down_handler, filters.command("down") & auth_filter))
     torrent_filter = filters.create(
         lambda _, __, message: bool(
             message.document and 
@@ -89,12 +92,12 @@ def setup_bots():
     app.add_handler(
         MessageHandler(
             torrent_handler,
-            filters.command("torrent") | torrent_filter,
+            (filters.command("torrent") | torrent_filter) & auth_filter,
         )
     )
-    app.add_handler(MessageHandler(add_handler, filters.command("add")))
-    app.add_handler(MessageHandler(end_handler, filters.command("end")))
-    app.add_handler(MessageHandler(stream_handler, filters.command("stream")))
+    app.add_handler(MessageHandler(add_handler, filters.command("add") & auth_filter))
+    app.add_handler(MessageHandler(end_handler, filters.command("end") & auth_filter))
+    app.add_handler(MessageHandler(stream_handler, filters.command("stream") & auth_filter))
     app.add_handler(
         MessageHandler(
             collection_monitor_handler,
@@ -111,7 +114,7 @@ def setup_bots():
                     "stream",
                     "cancel",
                 ]
-            ),
+            ) & auth_filter,
         ),
         group=1,
     )
