@@ -14,7 +14,7 @@ class CONFIG(Enum):
     API_HASH: str = st.secrets.get("API_HASH", "")
     TOKEN: str = st.secrets.get("TELEGRAM_BOT_TOKEN", "")
     
-    _allowed_raw = st.secrets.get("ALLOWED_USERS", "883265786")
+    _allowed_raw = st.secrets.get("ALLOWED_USERS", "")
     try:
         ALLOWED_USERS = [int(u.strip()) for u in _allowed_raw.split(",") if u.strip().replace("-", "").isdigit()]
     except Exception:
