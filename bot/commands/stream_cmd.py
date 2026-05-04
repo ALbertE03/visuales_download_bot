@@ -59,7 +59,6 @@ async def stream_handler(client: Client, message: Message):
 
         text = f"🎬 <b>{file_info.file_name}</b>\n"
         text += f"<code>{file_info.file_size / 1024 / 1024:.1f} MB</code>"
-        text += f"<blockquote><code>{watch_link}</code></blockquote>"
 
         buttons = [
             [InlineKeyboardButton("📺 Ver en navegador", url=watch_link)],
