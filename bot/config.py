@@ -28,8 +28,8 @@ class CONFIG(Enum):
     STREAM_BIN_CHANNEL: int = int(st.secrets.get("STREAM_BIN_CHANNEL", "-1003726563984"))
     STREAM_PORT: int = int(st.secrets.get("STREAM_PORT", 8080))
 
-    CANT_WORKER: int = 3
-    UPLOAD_WORKER: int = 4
+    CANT_WORKER: int = 2
+    UPLOAD_WORKER: int = 2
     RETRY_MAX: int = 3
 
     status_data: Dict[str, Any] = {

@@ -1,24 +1,26 @@
 import logging
 import math
+import asyncio
 from collections import OrderedDict
 from typing import AsyncGenerator, Optional
 
 from pyrogram import Client, raw
-from pyrogram.file_id import FileId, FileType, PHOTO_TYPES
+from pyrogram.file_id import FileId, PHOTO_TYPES
 
 from bot.stream.config import StreamConfig
 from bot.stream.file_properties import FileInfo, get_file_info_by_id
+from bot.stream.cache import global_chunk_cache, global_coordinator
+from bot.stream.prefetch import global_prefetch_manager
 
 logger = logging.getLogger("visuales_bot")
 
-
 class PyrogramStreamer:
-    """Descarga chunks de archivos de Telegram para streaming HTTP."""
+    """Descarga chunks de archivos de Telegram para streaming HTTP, usando cache y preloading."""
 
     def __init__(self, client: Client):
         self.client = client
         self.cached_files: OrderedDict[int, FileInfo] = OrderedDict()
-
+        
     async def get_file_properties(self, message_id: int) -> Optional[FileInfo]:
         """Obtiene las propiedades de un archivo, con caché."""
         if message_id in self.cached_files:
@@ -45,13 +47,7 @@ class PyrogramStreamer:
         from_bytes: int,
         until_bytes: int,
     ) -> AsyncGenerator[bytes, None]:
-        """
-        Descarga un rango de bytes de un archivo de Telegram.
-
-        Usa la API raw de Pyrogram con manejo automático de DCs.
-        Soporta Range requests para seeking en videos.
-        """
-        chunk_size = StreamConfig.CHUNK_SIZE  # 1MB
+        chunk_size = StreamConfig.CHUNK_SIZE
 
         file_id = FileId.decode(file_info.file_id)
         dc_id = file_id.dc_id
@@ -71,7 +67,6 @@ class PyrogramStreamer:
                 thumb_size=file_id.thumbnail_size or "",
             )
 
-        # Calcular los chunks necesarios
         offset = from_bytes - (from_bytes % chunk_size)
         first_part_cut = from_bytes - offset
         first_part = math.floor(offset / chunk_size)
@@ -79,45 +74,68 @@ class PyrogramStreamer:
         last_part = math.ceil(until_bytes / chunk_size)
         part_count = last_part - first_part
         total_parts = math.ceil(file_size / chunk_size)
+        
+
+        prefetch_count = 15
 
         logger.debug(
             "Streaming: chunks %s-%s de %s (total %s)",
-            first_part,
-            last_part,
-            part_count,
-            total_parts,
+            first_part, last_part, part_count, total_parts,
         )
 
         try:
-            # Obtener sesión para el DC correcto
-            logger.info(f"Pidiendo sesión para DC {dc_id} (Media: True)...")
-            session = await self.client.get_session(dc_id, is_media=True)
-            logger.info(f"Sesión obtenida para DC {dc_id}")
-
+            session = None
             current_part = 1
             current_offset = offset
 
-            logger.info(f"Streaming iniciado: Offset={offset}, Partes={part_count}, Chunks={chunk_size}")
-
             while current_part <= part_count:
-                logger.info(f"Solicitando parte {current_part}/{part_count} (Offset: {current_offset})...")
-                result = await session.invoke(
-                    raw.functions.upload.GetFile(
-                        location=location,
-                        offset=current_offset,
-                        limit=chunk_size,
-                    ),
-                    sleep_threshold=30,
-                )
-
-
-                if not isinstance(result, raw.types.upload.File) or not result.bytes:
+                chunk = await global_chunk_cache.get(file_info.file_id, current_offset)
+                
+                if not chunk:
+                    should_download = await global_coordinator.wait_or_start(file_info.file_id, current_offset)
+                    if should_download:
+                        try:
+                            if not session:
+                                session = await self.client.get_session(dc_id, is_media=True)
+                            
+                            result = await session.invoke(
+                                raw.functions.upload.GetFile(
+                                    location=location,
+                                    offset=current_offset,
+                                    limit=chunk_size,
+                                ),
+                                sleep_threshold=30,
+                            )
+                            if isinstance(result, raw.types.upload.File) and result.bytes:
+                                chunk = result.bytes
+                                await global_chunk_cache.put(file_info.file_id, current_offset, chunk)
+                            else:
+                                break
+                        except Exception:
+                            logger.error("Error obteniendo bloque de Telegram", exc_info=True)
+                            await global_coordinator.finish(file_info.file_id, current_offset)
+                            break
+                        finally:
+                            await global_coordinator.finish(file_info.file_id, current_offset)
+                    else:
+                        chunk = await global_chunk_cache.get(file_info.file_id, current_offset)
+                
+                if not chunk:
                     break
+                
+                # Iniciar prefetch de los siguientes bloques (1 minuto aprox)
+                if current_part == 1 or current_part % 5 == 0:
+                    prefetch_start_offset = current_offset + chunk_size
+                    prefetch_start_part = first_part + current_part
+                    if prefetch_start_offset < file_size:
+                        global_prefetch_manager.start_prefetch(
+                            self.client, dc_id, file_info.file_id, location,
+                            prefetch_start_offset, prefetch_start_part, prefetch_count,
+                            chunk_size, file_size
+                        )
 
-                chunk = result.bytes
                 current_offset += chunk_size
 
-                # Recortar el primer y último chunk
                 if part_count == 1:
                     yield chunk[first_part_cut:last_part_cut]
                 elif current_part == 1:
@@ -127,15 +145,7 @@ class PyrogramStreamer:
                 else:
                     yield chunk
 
-                logger.info(
-                    "Chunk %s/%s descargado (total %s)",
-                    current_part,
-                    last_part,
-                    total_parts,
-                )
                 current_part += 1
-
-            logger.info("Streaming completado")
 
         except (GeneratorExit, StopAsyncIteration):
             logger.debug("Streaming interrumpido por el cliente")

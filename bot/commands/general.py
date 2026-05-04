@@ -1,7 +1,11 @@
 from pyrogram import Client
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
+import hashlib
 from bot.config import CONFIG
 from bot.constants import CONSTANTS
+
+def _hash_key(key: str) -> str:
+    return hashlib.md5(key.encode()).hexdigest()[:12]
 
 
 async def main_menu_handler(client: Client, message: Message) -> None:
@@ -24,7 +28,8 @@ async def cancel_handler(client: Client, message: Message) -> None:
     buttons = []
     for task_key, data in active_tasks:
         name = data.get("filename", task_key)[:30]
-        buttons.append([InlineKeyboardButton(f"❌ {name}", callback_data=f"cancel_{task_key}")])
+        h = _hash_key(task_key)
+        buttons.append([InlineKeyboardButton(f"❌ {name}", callback_data=f"cancel_{h}")])
     
     buttons.append([InlineKeyboardButton("🛑 Cancelar TODAS", callback_data="cancel_all")])
     
@@ -57,13 +62,20 @@ async def cancel_callback_handler(client: Client, callback_query) -> None:
         CONFIG.LOGGER.value.info("El usuario canceló todas las tareas.")
         
     elif data.startswith("cancel_"):
-        task_key = data.replace("cancel_", "")
-        if task_key in CONFIG.status_data.value["active"]:
-            name = CONFIG.status_data.value["active"][task_key].get("filename", task_key)
-            del CONFIG.status_data.value["active"][task_key]
+        h_key = data.replace("cancel_", "")
+        
+        target_key = None
+        for tk in CONFIG.status_data.value["active"].keys():
+            if _hash_key(tk) == h_key:
+                target_key = tk
+                break
+                
+        if target_key and target_key in CONFIG.status_data.value["active"]:
+            name = CONFIG.status_data.value["active"][target_key].get("filename", target_key)
+            del CONFIG.status_data.value["active"][target_key]
             await callback_query.answer(f"Cancelando: {name}", show_alert=True)
             await callback_query.message.delete()
-            CONFIG.LOGGER.value.info(f"El usuario canceló la tarea: {task_key}")
+            CONFIG.LOGGER.value.info(f"El usuario canceló la tarea: {target_key}")
         else:
             await callback_query.answer("La tarea ya no existe o terminó.", show_alert=True)
 
