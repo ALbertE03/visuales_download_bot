@@ -2,7 +2,7 @@
 
 import logging
 from pyrogram import Client
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from bot.stream.config import StreamConfig
 from bot.stream.file_properties import get_file_info, pack_file, get_short_hash
 
@@ -54,20 +54,22 @@ async def stream_handler(client: Client, message: Message):
         stream_link = f"{StreamConfig.URL}stream/{forwarded.id}?hash={file_hash}"
 
         # Determinar si es media reproducible
-        is_media = any(m in (file_info.mime_type or "") for m in STREAMABLE_MIMES)
+        #is_media = any(m in (file_info.mime_type or "") for m in STREAMABLE_MIMES)
 
         # Generar enlace para reproductor web
         watch_link = f"{StreamConfig.URL}watch/{forwarded.id}?hash={file_hash}"
 
-        if is_media:
-            text = f"🎬 <b>{file_info.file_name}</b>\n\n"
-            text += f"📺 <b>Ver en navegador:</b>\n<code>{watch_link}</code>\n\n"
-            text += f"🔗 <b>Link directo:</b>\n<code>{stream_link}</code>"
-        else:
-            text = f"📄 <b>{file_info.file_name}</b>\n\n"
-   
+        text = f"🎬 <b>{file_info.file_name}</b>\n"
+        text += f"<code>{file_info.file_size / 1024 / 1024:.1f} MB</code>"
 
-        await status_msg.edit_text(text, disable_web_page_preview=True)
+        buttons = [
+                [InlineKeyboardButton("📺 Ver en navegador", url=watch_link)],
+            ]
+
+        await status_msg.edit_text(
+            text,
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
 
 
 
