@@ -147,7 +147,7 @@ async def update_status_message(client: Client) -> None:
                                 f"Error actualizando status: {e}"
                             )
 
-            await asyncio.sleep(15)
+            await asyncio.sleep(4)
         except pyrogram.errors.FloodWait as e:
             await asyncio.sleep(e.value)
         except Exception as e:
