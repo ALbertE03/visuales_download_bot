@@ -74,6 +74,156 @@ async def status_handler(_: web.Request):
     )
 
 
+@routes.get(r"/watch/{messageID:\d+}", allow_head=True)
+async def watch_handler(request: web.Request):
+    """Muestra una página HTML con reproductor de video."""
+    try:
+        message_id = int(request.match_info["messageID"])
+        secure_hash = request.rel_url.query.get("hash")
+
+        if _streamer is None:
+            return web.Response(status=503, text="Servidor no inicializado")
+
+        file_info = await _streamer.get_file_properties(message_id)
+        if not file_info:
+            return web.Response(status=404, text="Archivo no encontrado")
+
+        # Verificar hash
+        full_hash = pack_file(
+            file_info.file_name,
+            file_info.file_size,
+            file_info.mime_type,
+            file_info.message_id,
+        )
+        if get_short_hash(full_hash) != secure_hash:
+            return web.HTTPForbidden(text="Hash inválido")
+
+        stream_url = f"{StreamConfig.URL}stream/{message_id}?hash={secure_hash}"
+
+        html = f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{file_info.file_name}</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            background: #0f0f0f;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }}
+        .container {{
+            width: 100%;
+            max-width: 900px;
+            background: #1a1a1a;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }}
+        .video-wrapper {{
+            position: relative;
+            background: #000;
+        }}
+        video {{
+            width: 100%;
+            height: auto;
+            display: block;
+        }}
+        .info {{
+            padding: 20px;
+            color: #fff;
+        }}
+        .filename {{
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }}
+        .filesize {{
+            color: #aaa;
+            font-size: 0.9em;
+            margin-bottom: 16px;
+        }}
+        .buttons {{
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }}
+        .btn {{
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }}
+        .btn-primary {{
+            background: #3b82f6;
+            color: white;
+        }}
+        .btn-primary:hover {{ background: #2563eb; }}
+        .btn-secondary {{
+            background: #333;
+            color: white;
+        }}
+        .btn-secondary:hover {{ background: #444; }}
+        .btn svg {{
+            width: 18px;
+            height: 18px;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="video-wrapper">
+            <video controls autoplay playsinline>
+                <source src="{stream_url}" type="{file_info.mime_type or 'video/mp4'}">
+                Tu navegador no soporta el formato de video.
+            </video>
+        </div>
+        <div class="info">
+            <div class="filename">{file_info.file_name}</div>
+            <div class="filesize">{file_info.file_size / 1024 / 1024:.1f} MB</div>
+            <div class="buttons">
+                <a href="{stream_url}&s=1" class="btn btn-primary" download>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Descargar
+                </a>
+                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('{stream_url}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Copiar Link
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>"""
+
+        return web.Response(text=html, content_type="text/html")
+
+    except Exception as e:
+        logger.error(f"Error en watch_handler: {e}")
+        return web.Response(status=500, text="Error interno")
+
+
 @routes.get(r"/stream/{messageID:\d+}", allow_head=True)
 async def stream_handler(request: web.Request):
     try:

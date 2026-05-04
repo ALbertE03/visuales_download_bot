@@ -56,15 +56,18 @@ async def stream_handler(client: Client, message: Message):
         # Determinar si es media reproducible
         is_media = any(m in (file_info.mime_type or "") for m in STREAMABLE_MIMES)
 
-       
-        if is_media:
-            text = f"\n<code>{stream_link}</code>"
-        else:
-            text = f"🔗 <code>{stream_link}</code>"
+        # Generar enlace para reproductor web
+        watch_link = f"{StreamConfig.URL}watch/{forwarded.id}?hash={file_hash}"
 
-        await status_msg.edit_text(
-            text
-        )
+        if is_media:
+            text = f"🎬 <b>{file_info.file_name}</b>\n\n"
+            text += f"📺 <b>Ver en navegador:</b>\n<code>{watch_link}</code>\n\n"
+            text += f"🔗 <b>Link directo:</b>\n<code>{stream_link}</code>"
+        else:
+            text = f"📄 <b>{file_info.file_name}</b>\n\n"
+   
+
+        await status_msg.edit_text(text, disable_web_page_preview=True)
 
 
 

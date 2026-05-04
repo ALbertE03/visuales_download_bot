@@ -87,19 +87,23 @@ class PyrogramStreamer:
             current_part = 1
             current_offset = offset
             
-            # Rate limiting logic - patrón de ventanas: esperar 60s, enviar 50s de buffer
-            start_time = time.time()
-            bytes_sent = 0
+            # Rate limiting logic - burst inicial rápido, luego pausas entre ventanas
+            window_start_time = time.time()
+            bytes_sent_in_window = 0
+            chunk_start_time = time.time()
+            
             duration = getattr(file_info, "duration", 0)
             if duration and duration > 0:
                 avg_bytes_per_sec = file_info.file_size / duration
             else:
                 avg_bytes_per_sec = 1.5 * 1024 * 1024  # 1.5 MB/s default
             
-            buffer_seconds = 60  # 60 segundos de buffer a enviar
-            buffer_bytes = avg_bytes_per_sec * buffer_seconds
-            window_wait_seconds = 50  # 50 segundos de espera entre ventanas
-            last_window_start = start_time
+            # Configuración: burst inicial rápido, luego ventanas controladas
+            initial_burst_seconds = 15  # Primeros 15s de video sin limitar
+            window_send_seconds = 60    # Enviar durante 60s
+            window_pause_seconds = 50   # Pausar 50s
+            initial_burst_bytes = avg_bytes_per_sec * initial_burst_seconds
+            window_send_bytes_limit = avg_bytes_per_sec * window_send_seconds
 
             while current_part <= part_count:
                 chunk = await global_chunk_cache.get(file_info.file_id, current_offset)
@@ -157,18 +161,29 @@ class PyrogramStreamer:
                 elif current_part == part_count:
                     chunk_to_yield = chunk[:last_part_cut]
 
-                # Rate limiting - patrón de ventanas: enviar 50s, esperar 60s
+                # Rate limiting por chunk - burst inicial, luego velocidad controlada
                 if avg_bytes_per_sec > 0:
-                    elapsed_this_window = time.time() - last_window_start
-                    # Si hemos enviado más de 60s de buffer en esta ventana
-                    if bytes_sent >= buffer_bytes:
-                        logger.debug("Ventana de 60s completada, esperando 50s...")
-                        await asyncio.sleep(window_wait_seconds)
-                        # Resetear para nueva ventana
-                        last_window_start = time.time()
-                        bytes_sent = 0
+                    chunk_size_sent = len(chunk_to_yield)
+                    bytes_sent_in_window += chunk_size_sent
+                    
+                    # Fase 1: Burst inicial - enviar sin limitar los primeros 15s
+                    if bytes_sent_in_window > initial_burst_bytes:
+                        # Fase 2: Velocidad controlada - sincronizar con tiempo de reproducción
+                        expected_time = (bytes_sent_in_window - initial_burst_bytes) / avg_bytes_per_sec
+                        actual_time = time.time() - window_start_time
+                        
+                        if actual_time < expected_time:
+                            sleep_time = expected_time - actual_time
+                            await asyncio.sleep(sleep_time)
+                    
+                    # Fase 3: Si completamos ventana de 60s, pausar 50s
+                    if bytes_sent_in_window >= window_send_bytes_limit + initial_burst_bytes:
+                        logger.debug(f"Ventana completada: {(bytes_sent_in_window-initial_burst_bytes)/1024/1024:.1f}MB en {window_send_seconds}s. Pausando {window_pause_seconds}s...")
+                        await asyncio.sleep(window_pause_seconds)
+                        # Nueva ventana
+                        window_start_time = time.time()
+                        bytes_sent_in_window = 0
                 
-                bytes_sent += len(chunk_to_yield)
                 yield chunk_to_yield
 
                 current_part += 1
