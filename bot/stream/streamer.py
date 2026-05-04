@@ -86,6 +86,16 @@ class PyrogramStreamer:
             session = None
             current_part = 1
             current_offset = offset
+            
+            # Rate limiting logic
+            import time
+            start_time = time.time()
+            bytes_sent = 0
+            avg_bytes_per_sec = 0
+            buffer_bytes = 0
+            if getattr(file_info, "duration", 0) and file_info.duration > 0:
+                avg_bytes_per_sec = file_info.file_size / file_info.duration
+                buffer_bytes = avg_bytes_per_sec * 60  # 1 minute buffer
 
             while current_part <= part_count:
                 chunk = await global_chunk_cache.get(file_info.file_id, current_offset)
@@ -135,14 +145,26 @@ class PyrogramStreamer:
 
                 current_offset += chunk_size
 
+                chunk_to_yield = chunk
                 if part_count == 1:
-                    yield chunk[first_part_cut:last_part_cut]
+                    chunk_to_yield = chunk[first_part_cut:last_part_cut]
                 elif current_part == 1:
-                    yield chunk[first_part_cut:]
+                    chunk_to_yield = chunk[first_part_cut:]
                 elif current_part == part_count:
-                    yield chunk[:last_part_cut]
-                else:
-                    yield chunk
+                    chunk_to_yield = chunk[:last_part_cut]
+
+                # Rate limiting 
+                if avg_bytes_per_sec > 0:
+                    elapsed = time.time() - start_time
+                    expected_bytes_played = avg_bytes_per_sec * elapsed
+                    if bytes_sent > expected_bytes_played + buffer_bytes:
+                        sleep_time = (bytes_sent - buffer_bytes - expected_bytes_played) / avg_bytes_per_sec
+                        if sleep_time > 0:
+                            import asyncio
+                            await asyncio.sleep(min(sleep_time, 5.0))
+                
+                bytes_sent += len(chunk_to_yield)
+                yield chunk_to_yield
 
                 current_part += 1
 

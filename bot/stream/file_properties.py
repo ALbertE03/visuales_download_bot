@@ -10,13 +10,14 @@ from bot.stream.config import StreamConfig
 class FileInfo:
     """Información de un archivo de Telegram necesaria para el streaming."""
 
-    __slots__ = ("file_size", "mime_type", "file_name", "file_id", "message_id")
+    __slots__ = ("file_size", "mime_type", "file_name", "file_id", "message_id", "duration")
 
     file_size: int
     mime_type: str
     file_name: str
     file_id: str 
     message_id: int
+    duration: int  # in seconds
 
 
 def get_file_info(message: Message) -> Optional[FileInfo]:
@@ -29,6 +30,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
             file_name=media.file_name or f"document_{message.id}",
             file_id=media.file_id,
             message_id=message.id,
+            duration=0,
         )
     elif message.video:
         media = message.video
@@ -38,6 +40,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
             file_name=media.file_name or f"video_{message.id}.mp4",
             file_id=media.file_id,
             message_id=message.id,
+            duration=getattr(media, "duration", 0),
         )
     elif message.audio:
         media = message.audio
@@ -47,6 +50,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
             file_name=media.file_name or f"audio_{message.id}.mp3",
             file_id=media.file_id,
             message_id=message.id,
+            duration=getattr(media, "duration", 0),
         )
     elif message.photo:
         photo = message.photo
@@ -56,6 +60,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
             file_name=f"photo_{message.id}.jpg",
             file_id=photo.file_id,
             message_id=message.id,
+            duration=0,
         )
     elif message.voice:
         media = message.voice
@@ -65,6 +70,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
             file_name=f"voice_{message.id}.ogg",
             file_id=media.file_id,
             message_id=message.id,
+            duration=getattr(media, "duration", 0),
         )
     elif message.video_note:
         media = message.video_note
@@ -74,6 +80,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
             file_name=f"videonote_{message.id}.mp4",
             file_id=media.file_id,
             message_id=message.id,
+            duration=getattr(media, "duration", 0),
         )
 
     return None

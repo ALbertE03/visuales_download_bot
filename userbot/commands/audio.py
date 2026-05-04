@@ -1,7 +1,8 @@
-from pyrogram import Client, filters
+from pyrogram import Client
 from pyrogram.errors import MessageNotModified
 from pyrogram.types import Message
 from bot.log import logger
+from userbot.const import CONST
 from userbot.core.transcription import process_transcription
 
 async def totext_cmd(client: Client, message: Message):
@@ -21,8 +22,7 @@ async def totext_cmd(client: Client, message: Message):
     await process_transcription(client, target, response_msg=message)
 
 async def auto_transcribe_private(client: Client, message: Message):
-    # Ignorar la transcripción automática en estos bots específicos
-    if message.chat and message.chat.username in ["MusicsHuntersbot", "VoiceShazamBot"]:
+    if message.chat and message.chat.username in CONST.CHAT_NOT_INCLUDED:
         return
 
     logger.info(f"Transcripción automática activada en PV: {message.chat.id}")
