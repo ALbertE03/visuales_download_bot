@@ -1,5 +1,3 @@
-
-
 import logging
 from pyrogram import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
@@ -54,25 +52,21 @@ async def stream_handler(client: Client, message: Message):
         stream_link = f"{StreamConfig.URL}stream/{forwarded.id}?hash={file_hash}"
 
         # Determinar si es media reproducible
-        #is_media = any(m in (file_info.mime_type or "") for m in STREAMABLE_MIMES)
+        # is_media = any(m in (file_info.mime_type or "") for m in STREAMABLE_MIMES)
 
         # Generar enlace para reproductor web
         watch_link = f"{StreamConfig.URL}watch/{forwarded.id}?hash={file_hash}"
 
         text = f"🎬 <b>{file_info.file_name}</b>\n"
         text += f"<code>{file_info.file_size / 1024 / 1024:.1f} MB</code>"
+        text += f"<blockquote><code>{watch_link}</code></blockquote>"
 
         buttons = [
             [InlineKeyboardButton("📺 Ver en navegador", url=watch_link)],
         ]
 
         await status_msg.delete()
-        await message.reply(
-            text,
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
-
-
+        await message.reply(text, reply_markup=InlineKeyboardMarkup(buttons))
 
         logger.info("Stream link generado: %s (msg_id=%s)", stream_link, forwarded.id)
 
