@@ -81,9 +81,6 @@ async def watch_handler(request: web.Request):
         message_id = int(request.match_info["messageID"])
         secure_hash = request.rel_url.query.get("hash")
 
-        if _streamer is None:
-            return web.Response(status=503, text="Servidor no inicializado")
-
         file_info = await _streamer.get_file_properties(message_id)
         if not file_info:
             return web.Response(status=404, text="Archivo no encontrado")
