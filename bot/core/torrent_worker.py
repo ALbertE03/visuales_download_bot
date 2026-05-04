@@ -48,7 +48,7 @@ def download_torrent(client, loop, source, chat_id=None):
     while not handle.has_metadata():
         time.sleep(1)
 
-        if time.time() - start_time > 300:
+        if time.time() - start_time > CONSTANTS.TORRENT_INIT_TIMEOUT:
             CONFIG.LOGGER.value.info(
                 CONSTANTS.LOG_TORRENT_METADATA_TIMEOUT.format(filename=filename)
             )
@@ -96,7 +96,7 @@ def download_torrent(client, loop, source, chat_id=None):
                 no_seeds_start_time = time.time()
             else:
                 elapsed = time.time() - no_seeds_start_time
-                if elapsed > 1800:  # 30 minutos
+                if elapsed > CONSTANTS.TORRENT_TIMEOUT_NO_SEEDS:
                     CONFIG.LOGGER.value.warning(
                         f"Cancelando torrent {filename} por falta de semillas."
                     )

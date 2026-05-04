@@ -14,7 +14,7 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
     """Procesador de la cola de descargas."""
     while True:
         try:
-            item = CONFIG.download_queue.value.get(timeout=5)
+            item = CONFIG.download_queue.value.get(timeout=CONSTANTS.QUEUE_TIMEOUT)
             if item is None: break
             
             url, filename, retries = item
@@ -44,9 +44,9 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
                     file_path, filename = future.result()
                 else:
                     headers = {
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                        "User-Agent": CONSTANTS.DEFAULT_USER_AGENT
                     }
-                    response = requests.get(url, stream=True, timeout=120, headers=headers)
+                    response = requests.get(url, stream=True, timeout=CONSTANTS.DOWNLOAD_TIMEOUT, headers=headers)
                     response.raise_for_status()
                     
                     total_size = int(response.headers.get('content-length', 0))

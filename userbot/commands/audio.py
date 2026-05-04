@@ -21,5 +21,9 @@ async def totext_cmd(client: Client, message: Message):
     await process_transcription(client, target, response_msg=message)
 
 async def auto_transcribe_private(client: Client, message: Message):
+    # Ignorar la transcripción automática en estos bots específicos
+    if message.chat and message.chat.username in ["MusicsHuntersbot", "VoiceShazamBot"]:
+        return
+
     logger.info(f"Transcripción automática activada en PV: {message.chat.id}")
     await process_transcription(client, message)

@@ -4,7 +4,7 @@ import math
 from typing import Set
 
 from pyrogram import Client, raw
-
+from bot.stream.config import StreamConfig
 from bot.stream.cache import global_chunk_cache, global_coordinator
 
 logger = logging.getLogger("visuales_bot")
@@ -40,7 +40,7 @@ class PrefetchManager:
                                     offset=current_offset,
                                     limit=chunk_size,
                                 ),
-                                sleep_threshold=30,
+                                sleep_threshold=StreamConfig.SLEEP_THRESHOLD,
                             )
                             if isinstance(result, raw.types.upload.File) and result.bytes:
                                 await global_chunk_cache.put(file_id_str, current_offset, result.bytes)

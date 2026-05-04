@@ -11,6 +11,11 @@ class StreamConfig:
     CHUNK_SIZE: int = 1024 * 1024
     CACHE_SIZE: int = 128
     REQUEST_LIMIT: int = 5
+    
+    
+    MAX_CACHE_BYTES: int = int(st.secrets.get("STREAM_MAX_CACHE_BYTES", 200 * 1024 * 1024))
+    PREFETCH_COUNT: int = int(st.secrets.get("STREAM_PREFETCH_COUNT", 15))
+    SLEEP_THRESHOLD: int = int(st.secrets.get("STREAM_SLEEP_THRESHOLD", 30))
 
     # URL base del servidor de streaming
     _url = st.secrets.get("STREAM_URL", "")

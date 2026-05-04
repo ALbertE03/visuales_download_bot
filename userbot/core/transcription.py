@@ -25,25 +25,34 @@ def translate_to_spanish(text):
     except Exception:
         return text
 
+async def _notify_error(client: Client, response_msg: Message, err_desc: str):
+    logger.error(f"Transcripción Error: {err_desc}")
+    if response_msg:
+        try:
+            await response_msg.delete()
+        except Exception:
+            pass
+    try:
+        await client.send_message("me", f"❌ <b>Error en Transcripción:</b>\n<pre>{err_desc}</pre>")
+    except Exception as ex:
+        logger.error(f"No se pudo notificar el error a 'me': {ex}")
+
 async def process_transcription(
     client: Client, media_msg: Message, response_msg: Message = None
 ):
     """
     Función central para procesar transcripciones.
-    Si response_msg existe, lo edita. Si no, responde al media_msg.
+    Si hay un error y response_msg (el /totext) existe, lo borra y advierte en Saved Messages ("me").
     """
     if not GROQ_API_KEY:
-        error_txt = "Falta GROQ_API_KEY en .env"
-        if response_msg:
-            try:
-                await response_msg.edit_text(error_txt)
-            except MessageNotModified:
-                pass
-        else:
-            await media_msg.reply_text(error_txt)
+        await _notify_error(client, response_msg, "Falta GROQ_API_KEY en .streamlit/secrets.toml")
         return
 
     file_path = await client.download_media(media_msg)
+    if not file_path:
+        await _notify_error(client, response_msg, "No se pudo descargar el archivo multimedia.")
+        return
+        
     logger.info(f"Audio descargado en: {file_path}")
     try:
         with open(file_path, "rb") as audio_file:
@@ -80,18 +89,10 @@ async def process_transcription(
             else:
                 await media_msg.reply_text(final_text)
         else:
-            err_msg = f"Error en Groq: {response.status_code}"
-            logger.error(f"Error en API Groq ({response.status_code}): {response.text}")
-            if response_msg:
-                try:
-                    await response_msg.edit_text(err_msg)
-                except MessageNotModified:
-                    pass
-            else:
-                await media_msg.reply_text(err_msg)
+            await _notify_error(client, response_msg, f"Error en Groq ({response.status_code}): {response.text}")
 
     except Exception as e:
-        logger.exception(f"Excepción durante la transcripción: {e}")
+        await _notify_error(client, response_msg, f"Excepción interna: {str(e)}")
 
     finally:
         if os.path.exists(file_path):

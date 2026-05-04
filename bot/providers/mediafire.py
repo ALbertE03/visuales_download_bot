@@ -17,7 +17,7 @@ class MediaFireProvider(BaseProvider):
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 html = await response.text()
-                # Buscar el link directo en el HTML (MediaFire rotea los IDs y Clases)
+                # Buscar el link directo en el HTML 
                 match = re.search(r'href\s*=\s*["\'](https?://download[^"\']+mediafire\.com/[^"\']+)["\']', html)
                 if match:
                     return match.group(1)
@@ -51,6 +51,7 @@ class MediaFireProvider(BaseProvider):
                             active = CONFIG.status_data.value["active"][task_key]
                             active["downloaded"] = downloaded
                             active["filename"] = filename
+                            active["total"] = total_size
                             if total_size > 0:
                                 active["progress"] = (downloaded / total_size) * 100
                             

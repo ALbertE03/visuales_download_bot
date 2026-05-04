@@ -75,8 +75,7 @@ class PyrogramStreamer:
         part_count = last_part - first_part
         total_parts = math.ceil(file_size / chunk_size)
         
-
-        prefetch_count = 15
+        prefetch_count = StreamConfig.PREFETCH_COUNT
 
         logger.debug(
             "Streaming: chunks %s-%s de %s (total %s)",
@@ -104,7 +103,7 @@ class PyrogramStreamer:
                                     offset=current_offset,
                                     limit=chunk_size,
                                 ),
-                                sleep_threshold=30,
+                                sleep_threshold=StreamConfig.SLEEP_THRESHOLD,
                             )
                             if isinstance(result, raw.types.upload.File) and result.bytes:
                                 chunk = result.bytes

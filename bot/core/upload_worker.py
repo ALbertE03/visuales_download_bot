@@ -21,7 +21,7 @@ async def upload_file(client: Client, file_path: str, filename: str, destination
 
     if os.path.isfile(file_path):
         file_size = os.path.getsize(file_path)
-        if file_size > 2000 * 1024 * 1024:  # > 2GB
+        if file_size > CONSTANTS.MAX_TG_SIZE:
             CONFIG.LOGGER.value.info(CONSTANTS.LOG_SPLITTING.format(filename=filename))
             
             task_key = f"split_{filename}"
@@ -68,7 +68,7 @@ async def upload_file(client: Client, file_path: str, filename: str, destination
             monitor_task = asyncio.create_task(monitor_split_progress())
             
             try:
-                parts = await loop.run_in_executor(None, split_file, file_path, 1990) 
+                parts = await loop.run_in_executor(None, split_file, file_path, CONSTANTS.SPLIT_SIZE_MB) 
             finally:
                 if task_key in CONFIG.status_data.value["active"]:
                     del CONFIG.status_data.value["active"][task_key]

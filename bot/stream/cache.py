@@ -2,8 +2,10 @@ import asyncio
 from collections import OrderedDict
 from typing import Dict, Tuple, Optional
 
+from bot.stream.config import StreamConfig
+
 class ChunkCache:
-    def __init__(self, max_size_bytes: int = 200 * 1024 * 1024):
+    def __init__(self, max_size_bytes: int = StreamConfig.MAX_CACHE_BYTES):
         self.max_size_bytes = max_size_bytes
         self.current_size = 0
         self.cache: OrderedDict[Tuple[str, int], bytes] = OrderedDict()

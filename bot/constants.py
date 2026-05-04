@@ -13,42 +13,49 @@ class CONSTANTS:
 
     # Mensajes de Telegram
     MSG_CMD_DOWNLOAD_USAGE = (
-        "<blockquote><b>Uso:</b> <code>/dl &lt;url&gt;</code></blockquote>"
+        "<blockquote><b>[i] Uso:</b> <code>/dl &lt;url&gt;</code></blockquote>"
     )
 
-    MSG_ANALYZING = "<blockquote><i>Analizando enlace...</i></blockquote>"
-    MSG_DOWNLOADING = "<blockquote><i>Descargando...</i></blockquote>"
-    MSG_UPLOADING = "<blockquote><i>Subiendo a Telegram...</i></blockquote>"
+    MSG_ANALYZING = "<blockquote>[~] <i>Analizando enlace...</i></blockquote>"
+    MSG_DOWNLOADING = "<blockquote>[~] <i>Descargando contenido...</i></blockquote>"
+    MSG_UPLOADING = "<blockquote>[^] <i>Subiendo a Telegram...</i></blockquote>"
     MSG_INVALID_LINK = (
-        "<blockquote><b>Error:</b> Enlace no válido o no soportado.</blockquote>"
+        "<blockquote><b>[x] Error:</b> Enlace no válido o no soportado.</blockquote>"
     )
     MSG_ERROR_OCCURRED = (
-        "<blockquote><b>Ocurrió un error:</b>\n<pre>{error_msg}</pre></blockquote>"
+        "<blockquote><b>[x] Excepción no controlada:</b>\n<pre>{error_msg}</pre></blockquote>"
     )
 
     # Mensajes de Comandos y Bot
-    MSG_NO_PROVIDER = "<blockquote><b>Aviso:</b> No se encontró un administrador para manejar este enlace.</blockquote>"
+    MSG_NO_PROVIDER = "<blockquote><b>[!] Aviso:</b> No se encontró un administrador para manejar este enlace.</blockquote>"
     MSG_INVALID_MAGNET = (
-        "<blockquote><b>Error:</b> Enlace magnet inválido.</blockquote>"
+        "<blockquote><b>[x] Error:</b> Enlace magnet o hash corrupto.</blockquote>"
     )
-    MSG_INVALID_TORRENT_FILE = "<blockquote><b>Error:</b> Archivo .torrent inválido o no soportado.</blockquote>"
+    MSG_INVALID_TORRENT_FILE = "<blockquote><b>[x] Error:</b> Archivo .torrent corrompido o ilegible.</blockquote>"
     MSG_CHOOSE_OPTION = "<blockquote><b>Opciones principales:</b></blockquote>"
     MSG_START_BUTTON = "Comenzar"
     MSG_SETTINGS_BUTTON = "Ajustes"
 
     MSG_HELP = (
-        "<b>Comandos Disponibles:</b>\n"
+        "<b>-- Descargas y Extracción --</b>\n"
         "<blockquote>"
-        "<code>/down &lt;ruta&gt;</code> - Descarga desde Visuales UCLV\n"
-        "<code>/dl &lt;url&gt;</code> - YouTube, Instagram, Twitter (X), Google Drive\n"
-        "<code>/torrent &lt;magnet&gt;</code> - Torrent via magnet\n"
-        "<code>/stream</code> - Genera enlace de streaming para un archivo\n"
-        "<code>/add</code> - Inicia recolección de archivos (Zip)\n"
-        "<code>/end</code> - Finaliza recolección\n"
-        "<code>/status</code> - Abre el Panel de Control\n"
-        "<code>/cancel</code> - Administrar cancelaciones de tareas"
+        "<code>/down &lt;ruta&gt;</code> - Descargas directas desde Visuales UCLV.\n"
+        "<code>/dl &lt;url&gt;</code> - Youtube, Mediafire, Google Drive, Instagram, X.\n"
+        "<code>/torrent &lt;magnet&gt;</code> - Protocolo BitTorrent (con soporte de video).\n"
         "</blockquote>\n"
-        "<i>Nota: También puedes enviar un archivo .torrent directamente.</i>"
+        "<b>-- Opciones de Medios --</b>\n"
+        "<blockquote>"
+        "<code>/stream</code> - Genera un enlace cifrado web para ver videos online.\n"
+        "<code>/add</code> - Habilita la recolección de archivos para armar un ZIP.\n"
+        "<code>/end</code> - Comprime recolección activa y envía a Telegram.\n"
+        "</blockquote>\n"
+        "<b>-- Monitor del Sistema --</b>\n"
+        "<blockquote>"
+        "<code>/status</code> - Abre el Panel de Control en tiempo real.\n"
+        "<code>/server_status</code> - Estado de hardware y recursos.\n"
+        "<code>/cancel</code> - Administra y detiene tareas activas."
+        "</blockquote>\n"
+        "<i>* Puedes enviar archivos .torrent como mensaje directo.</i>"
     )
 
     # Mensajes de Estado en Panel
@@ -64,12 +71,12 @@ class CONSTANTS:
     TYPE_GENERIC = "TAREA"
     MAX_VISIBLE_TASKS = 10
     # UI Panel
-    PANEL_HEADER = "<b>[ PANEL DE CONTROL DEL SISTEMA ]</b>\n"
-    PANEL_ACTIVE_TASKS_HEADER = "<b>⎯⎯ TAREAS ACTIVAS ({active_count}) ⎯⎯</b>"
-    PANEL_NO_TASKS = "<blockquote><i>Sistema inactivo. Esperando nuevas peticiones.</i></blockquote>\n"
-    PANEL_TASK_ITEM = "<blockquote><b>Fase:</b> <code>{task_type}</code>\n<b>Archivo:</b> <code>{filename}</code>\n<b>Avance:</b> <code>[{bar}] {progress:.1f}%</code>\n<b>Datos:</b> <code>{downloaded}</code> de <code>{total}</code>\n<b>Velocidad:</b> <code>{speed}</code> | <b>ETA:</b> <code>{eta}</code></blockquote>"
-    PANEL_GLOBAL_HEADER = "<b>⎯⎯ METRICAS GLOBALES ⎯⎯</b>"
-    PANEL_GLOBAL_STATS = "<blockquote><b>Tiempo Activo:</b> <code>{uptime}</code>\n<b>Completados:</b> <code>{completed}</code> | <b>Fallidos:</b> <code>{failed}</code></blockquote>"
+    PANEL_HEADER = "<b>=== PANEL DE CONTROL DEL SISTEMA ===</b>\n"
+    PANEL_ACTIVE_TASKS_HEADER = "<b>| TAREAS ACTIVAS ({active_count})</b>"
+    PANEL_NO_TASKS = "<blockquote><i>[-] Sistema en reposo. Esperando nuevas peticiones.</i></blockquote>\n"
+    PANEL_TASK_ITEM = "<blockquote><b>{task_type}</b>: <code>{filename}</code>\n<b>[{bar}]</b> <code>{progress:.1f}%</code>\n<b>Transf:</b> <code>{downloaded}</code> / <code>{total}</code>\n<b>Ritmo:</b>  <code>{speed}</code> | <b>Fin:</b> <code>{eta}</code></blockquote>"
+    PANEL_GLOBAL_HEADER = "<b>| METRICAS GLOBALES</b>"
+    PANEL_GLOBAL_STATS = "<blockquote><b>Uptime:</b> <code>{uptime}</code>\n<b>Éxitos:</b> <code>{completed}</code> | <b>Fallos:</b> <code>{failed}</code></blockquote>"
 
     # Mensajes de Log y otros (Consola)
     LOG_DOWNLOADING = "Descargando {filename} desde {url}..."
@@ -117,7 +124,7 @@ class CONSTANTS:
     )
     LOG_SPLITTING = "Archivo {filename} es mayor a 2GB, dividiendo..."
 
-    MSG_TORRENT_CANCELLED_NO_SEEDS = "<blockquote><b>Aviso:</b> Descarga de torrent <code>{filename}</code> cancelada por falta de semillas (30 min inactivo).</blockquote>"
+    MSG_TORRENT_CANCELLED_NO_SEEDS = "<blockquote><b>[!] Abortando:</b> Descarga de torrent <code>{filename}</code> cancelada por falta de semillas.</blockquote>"
 
     # Mensajes de Error y Excepciones
     ERR_NO_GDRIVE_ID = (
@@ -150,33 +157,33 @@ class CONSTANTS:
     MSG_FINISHING = "<i>Finalizando operaciones...</i>"
 
     # Mensajes de Colección (Recolección)
-    MSG_COLLECTION_ALREADY_ACTIVE = "<blockquote><b>Aviso:</b> Ya tienes una recolección activa. Envía <code>/end</code> para terminarla.</blockquote>"
+    MSG_COLLECTION_ALREADY_ACTIVE = "<blockquote><b>[!] Aviso:</b> Ya tienes una recolección en curso. Envía <code>/end</code> para terminarla.</blockquote>"
     MSG_COLLECTION_STARTED = (
-        "<b>Modo Recolección Activado</b>\n"
-        "<blockquote>Envía <b>documentos</b>, <b>audios</b> o <b>videos</b>.\n"
-        "Cuando termines, envía el comando <code>/end</code>.</blockquote>\n"
-        "<i>Nota: Si envías texto u otros formatos, se cancelará.</i>"
+        "<b>[ MODO RECOLECCION ]</b>\n"
+        "<blockquote>Envía <b>documentos</b>, <b>audios</b> o <b>videos</b> y los iré guardando para armar un paquete.\n"
+        "Cuando termines, lanza el comando <code>/end</code>.</blockquote>\n"
+        "<i>* Los mensajes de texto serán ignorados.</i>"
     )
-    MSG_COLLECTION_NOT_ACTIVE = "<blockquote><b>Aviso:</b> No hay recolección activa. Usa <code>/add</code> para iniciar.</blockquote>"
-    MSG_COLLECTION_EMPTY = "<blockquote><b>Aviso:</b> Terminó la recolección, pero no enviaste archivos.</blockquote>"
-    MSG_COLLECTION_START_PACKING = "<blockquote><b>Empaquetando</b> <code>{count}</code> <b>archivos...</b>\n\n<i>Paso 1. Descargando al servidor...</i></blockquote>"
-    MSG_COLLECTION_DOWNLOADING = "<blockquote>Descargando archivo <code>{idx}</code> de <code>{total}</code>...</blockquote>"
-    MSG_COLLECTION_DOWNLOAD_ERROR = "<blockquote><b>Error:</b> Ningún archivo pudo descagarse al servidor.</blockquote>"
-    MSG_COLLECTION_COMPRESSING = "<blockquote><b>Comprimiendo</b> <code>{count}</code> <b>archivos en .zip</b>\n<i>(Nivel de compresión: Máximo)</i></blockquote>"
-    MSG_COLLECTION_ZIP_ERROR = "<blockquote><b>Error:</b> Fallo al intentar crear el archivo comprimido.</blockquote>"
-    MSG_COLLECTION_UPLOAD_QUEUE = "<blockquote><b>Éxito:</b> Archivo comprimido.\n<i>Pasando a la cola de subida...</i></blockquote>"
-    MSG_COLLECTION_FILE_ADDED = "<blockquote><b>Archivo añadido.</b>\nLlevas <code>{count}</code> archivos.</blockquote>"
+    MSG_COLLECTION_NOT_ACTIVE = "<blockquote><b>[!] Negado:</b> No hay sesión de recolección. Usa <code>/add</code> para iniciar.</blockquote>"
+    MSG_COLLECTION_EMPTY = "<blockquote><b>[i] Aviso:</b> Terminó la recolección, pero no enviaste nada.</blockquote>"
+    MSG_COLLECTION_START_PACKING = "<blockquote><b>[*] Empaquetando</b> <code>{count}</code> <b>archivos...</b>\n\n<i>Paso 1. Solicitando copias temporales...</i></blockquote>"
+    MSG_COLLECTION_DOWNLOADING = "<blockquote>[~] Descargando localmente <code>{idx}</code> de <code>{total}</code>...</blockquote>"
+    MSG_COLLECTION_DOWNLOAD_ERROR = "<blockquote><b>[x] Error fatal:</b> Ningún archivo se pudo descargar al server para comprimir.</blockquote>"
+    MSG_COLLECTION_COMPRESSING = "<blockquote><b>[#] Comprimiendo</b> <code>{count}</code> <b>archivos en .zip</b>\n<i>Usando nivel de fuerza bruta (9)</i></blockquote>"
+    MSG_COLLECTION_ZIP_ERROR = "<blockquote><b>[x] Error:</b> Desbordamiento al instanciar binario zip.</blockquote>"
+    MSG_COLLECTION_UPLOAD_QUEUE = "<blockquote><b>[*] Archivo finalizado:</b> El empaquetado pasó a la cola de subidas global.</blockquote>"
+    MSG_COLLECTION_FILE_ADDED = "<blockquote><b>[+] Añadido a la bolsa virtual:</b> <code>{count}</code> items.</blockquote>"
     MSG_COLLECTION_CANCELLED = (
-        "<blockquote><b>Modo recolección cancelado.</b>\n"
-        "Has enviado un formato no permitido (solo docs/audios/videos).</blockquote>"
+        "<blockquote><b>[x] Sistema Abortado.</b>\n"
+        "Has enviado un formato de texto largo o no permitido. Reinicia con /add para intentar nuevamente.</blockquote>"
     )
 
     # Errores Adicionales
-    ERR_NETWORK = "<blockquote><b>Error de red:</b> El servidor respondió con <code>{status}</code></blockquote>"
+    ERR_NETWORK = "<blockquote><b>[x] Error de red perimetral:</b> El servidor respondió con status <code>{status}</code></blockquote>"
     ERR_UNEXPECTED = (
-        "<blockquote><b>Error inesperado:</b>\n<pre>{error}</pre></blockquote>"
+        "<blockquote><b>[!] Error interno:</b>\n<pre>{error}</pre></blockquote>"
     )
-    ERR_FOLDER_SCAN = "<blockquote><b>Error en carpeta</b> <code>{url}</code>:\n<pre>{error}</pre></blockquote>"
+    ERR_FOLDER_SCAN = "<blockquote><b>[x] Error explorando</b> <code>{url}</code>:\n<pre>{error}</pre></blockquote>"
 
     # Configuración de Descarga
     YDL_OPTS_DEFAULT = {
@@ -217,3 +224,12 @@ class CONSTANTS:
         r"drive\.google\.com/uc\?id=([a-zA-Z0-9_-]+)",
         r"drive\.google\.com/folderview\?id=([a-zA-Z0-9_-]+)",
     ]
+
+    #  Configuraciones Técnicas y Límites 
+    MAX_TG_SIZE: int = 2000 * 1024 * 1024  # 2GB límite de subida a Telegram
+    SPLIT_SIZE_MB: int = 1990  # Tamaño en MB para picar archivos grandes
+    DOWNLOAD_TIMEOUT: int = 120  # Timeout en segundos para peticiones HTTP
+    QUEUE_TIMEOUT: int = 5  # Timeout en cola de espera
+    TORRENT_TIMEOUT_NO_SEEDS: int = 1800  # 30 minutos sin recibir datos para cancelar torrent
+    TORRENT_INIT_TIMEOUT: int = 300  # 5 minutos para obtener metadata del torrent
+    DEFAULT_USER_AGENT: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
