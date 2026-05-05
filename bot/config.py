@@ -18,7 +18,7 @@ class CONFIG(Enum):
     try:
         ALLOWED_USERS = [int(u.strip()) for u in _allowed_raw.split(",") if u.strip().replace("-", "").isdigit()]
     except Exception:
-        ALLOWED_USERS = [883265786]
+        ALLOWED_USERS = []
 
     _target_raw = st.secrets.get("TARGET_GROUP", "")
     try:
@@ -35,7 +35,7 @@ class CONFIG(Enum):
     STREAM_BIN_CHANNEL: int = int(st.secrets.get("STREAM_BIN_CHANNEL", "-1003726563984"))
     STREAM_PORT: int = int(st.secrets.get("STREAM_PORT", 8080))
 
-    CANT_WORKER: int = 2
+    CANT_WORKER: int = 4
     UPLOAD_WORKER: int = 2
     RETRY_MAX: int = 3
 

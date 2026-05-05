@@ -102,213 +102,257 @@ async def watch_handler(request: web.Request):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{file_info.file_name} - Visuales UCLV</title>
-    <!-- Plyr CSS para estilos profesionales -->
+    <title>{file_info.file_name} - Visuales Stream</title>
+    <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 2026 Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {{
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --bg-color: #0f1115;
-            --card-bg: #1a1d24;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --bg-color: #030305;
+            --panel-bg: rgba(20, 20, 25, 0.7);
+            --panel-border: rgba(255, 255, 255, 0.06);
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
         }}
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
-            background: var(--bg-color);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 100%, rgba(168, 85, 247, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
             color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            padding: 2rem 1rem;
+            padding: 3rem 1.5rem;
+            -webkit-font-smoothing: antialiased;
         }}
         .header {{
             width: 100%;
-            max-width: 1000px;
-            margin-bottom: 2rem;
+            max-width: 1200px;
+            margin-bottom: 2.5rem;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+        }}
+        .brand-icon {{
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px var(--primary-glow);
         }}
         .header-title {{
-            font-size: 1.5rem;
+            font-size: 1.75rem;
             font-weight: 700;
-            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #fff, #d4d4d8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }}
-        .container {{
+        .player-card {{
             width: 100%;
-            max-width: 1000px;
-            background: var(--card-bg);
-            border-radius: 16px;
+            max-width: 1200px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }}
         .video-wrapper {{
-            position: relative;
             background: #000;
             width: 100%;
             aspect-ratio: 16/9;
+            position: relative;
         }}
         .plyr {{
             height: 100%;
             --plyr-color-main: var(--primary);
+            --plyr-video-background: transparent;
+            --plyr-control-radius: 8px;
         }}
-        .info-section {{
-            padding: 1.5rem 2rem;
+        .info-panel {{
+            padding: 2rem 2.5rem;
+        }}
+        .title-group {{
+            margin-bottom: 1.5rem;
         }}
         .filename {{
-            font-size: 1.25rem;
+            font-size: 1.4rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
-            word-break: break-word;
             line-height: 1.4;
+            color: #fff;
+            margin-bottom: 0.8rem;
+            word-break: break-word;
         }}
-        .meta-info {{
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
+        .tags {{
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             align-items: center;
-        }}
-        .meta-tag {{
-            background: rgba(255,255,255,0.1);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.8rem;
-        }}
-        .actions {{
-            display: flex;
-            gap: 12px;
             flex-wrap: wrap;
+        }}
+        .badge {{
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.01em;
+        }}
+        .badge-live {{
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+            border-color: rgba(99, 102, 241, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }}
+        .badge-live::before {{
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #818cf8;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #818cf8;
+        }}
+        .controls-row {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
             padding-top: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid var(--panel-border);
+        }}
+        .tools {{
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
         }}
         .btn {{
             display: inline-flex;
             align-items: center;
             gap: 8px;
             padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
+            border-radius: 12px;
             font-size: 0.95rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
+            border: none;
+            user-select: none;
+            outline: none;
         }}
-        .btn-primary {{
-            background: var(--primary);
+        .btn-glow {{
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
             color: white;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 4px 15px var(--primary-glow), inset 0 1px 0 rgba(255,255,255,0.2);
         }}
-        .btn-primary:hover {{ background: var(--primary-hover); transform: translateY(-1px); }}
-        .btn-secondary {{
-            background: rgba(255,255,255,0.05);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.1);
+        .btn-glow:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6), inset 0 1px 0 rgba(255,255,255,0.2);
+            filter: brightness(1.1);
         }}
-        .btn-secondary:hover {{ background: rgba(255,255,255,0.1); }}
+        .btn-glow:active {{
+            transform: translateY(0);
+        }}
+        .btn-glass {{
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            border: 1px solid var(--panel-border);
+        }}
+        .btn-glass:hover {{
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }}
         .btn svg {{ width: 18px; height: 18px; }}
         
-        .controls-xtra {{
-            margin-bottom: 1rem;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }}
-        
-        .custom-file-upload {{
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            cursor: pointer;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.08);
-            font-size: 0.85rem;
-            transition: 0.2s;
-            border: 1px dashed rgba(255,255,255,0.2);
-            color: var(--text-muted);
-        }}
-        .custom-file-upload:hover {{
-            background: rgba(255,255,255,0.12);
-            color: #fff;
-        }}
         input[type="file"] {{ display: none; }}
         
-        #audio-track-selector {{
-            display: none;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            outline: none;
+        select.btn-glass {{
+            appearance: none;
+            padding-right: 36px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.6)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            cursor: pointer;
+        }}
+        select.btn-glass:focus {{
+            border-color: rgba(255,255,255,0.2);
+            background-color: rgba(255,255,255,0.06);
+        }}
+        select option {{
+            background: #18181b;
+            color: #fff;
+        }}
+        
+        @media (max-width: 768px) {{
+            .info-panel {{ padding: 1.5rem; }}
+            .filename {{ font-size: 1.25rem; }}
+            body {{ padding: 1.5rem 1rem; }}
         }}
     </style>
 </head>
 <body>
     <div class="header">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#3b82f6" />
-                    <stop offset="100%" stop-color="#8b5cf6" />
-                </linearGradient>
-            </defs>
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg>
-        <span class="header-title">Stream</span>
+        <div class="brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+        </div>
+        <span class="header-title">Visuales Stream</span>
     </div>
 
-    <div class="container">
+    <div class="player-card">
         <div class="video-wrapper">
             <video id="player" controls crossorigin playsinline>
                 <source src="{stream_url}" type="{file_info.mime_type or 'video/mp4'}">
             </video>
         </div>
         
-        <div class="info-section">
-            <div class="filename">{file_info.file_name}</div>
-            <div class="meta-info">
-                <span class="meta-tag">{file_info.file_size / 1024 / 1024:.1f} MB</span>
-                <span>•</span>
-                <span>Streaming</span>
+        <div class="info-panel">
+            <div class="title-group">
+                <div class="filename">{file_info.file_name}</div>
+                <div class="tags">
+                    <span class="badge badge-live">Stream Activo</span>
+                    <span class="badge">{file_info.file_size / 1024 / 1024:.1f} MB</span>
+                    <span class="badge" style="text-transform: uppercase">{file_info.file_name.split('.')[-1].lower() if '.' in file_info.file_name else 'VIDEO'}</span>
+                </div>
             </div>
             
-            <div class="controls-xtra">
-                <label class="custom-file-upload">
-                    <input type="file" id="sub-upload" accept=".vtt,.srt" />
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    Añadir Subtítulo (.srt/.vtt)
-                </label>
-                <select id="audio-track-selector"></select>
-            </div>
+            <div class="controls-row">
+                <div class="tools">
+                    <label class="btn btn-glass">
+                        <input type="file" id="sub-upload" accept=".vtt,.srt" />
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Añadir Subtítulo
+                    </label>
+                    <select id="audio-track-selector" class="btn btn-glass" style="display: none;"></select>
+                </div>
 
-            <div class="actions">
-                <a href="{stream_url}&s=1" class="btn btn-primary" download>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Descargar
-                </a>
-                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('{stream_url}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    Copiar Link
-                </button>
-                <a href="vlc://{stream_url}" class="btn btn-secondary" title="Abrir en VLC Media Player (Mejor para Dual Audio y formato MKV)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                    Abrir en VLC
-                </a>
+                <div class="tools">
+                    <a href="{stream_url}&s=1" class="btn btn-glow" download>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Descargar
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -329,7 +373,6 @@ async def watch_handler(request: web.Request):
                 }}
             }});
 
-            // Manejo de subtítulos locales
             document.getElementById('sub-upload').addEventListener('change', function(e) {{
                 const file = e.target.files[0];
                 if (!file) return;
@@ -345,14 +388,23 @@ async def watch_handler(request: web.Request):
                 Array.from(video.querySelectorAll('track')).forEach(t => t.remove());
                 video.appendChild(track);
                 
-                alert(`Subtítulo "${{file.name}}" cargado correctamente. Puedes activarlo en el menú (CC).`);
+                // Animación de éxito
+                const label = this.parentElement;
+                const originalText = label.innerHTML;
+                label.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Cargado con éxito`;
+                label.style.borderColor = '#4ade80';
+                label.style.color = '#4ade80';
                 
                 setTimeout(() => {{
                     track.mode = 'showing';
+                    setTimeout(() => {{
+                        label.innerHTML = originalText;
+                        label.style.borderColor = '';
+                        label.style.color = '';
+                    }}, 3000);
                 }}, 500);
             }});
 
-            // Soporte de Múltiples Pistas de Audio (Dual Audio) en la web
             video.addEventListener('loadedmetadata', () => {{
                 const audioTracks = video.audioTracks;
                 const selector = document.getElementById('audio-track-selector');
