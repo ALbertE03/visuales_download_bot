@@ -317,7 +317,7 @@ async def watch_handler(request: web.Request):
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
         </div>
-        <span class="header-title">Visuales Stream</span>
+        <span class="header-title">Stream</span>
     </div>
 
     <div class="player-card">
