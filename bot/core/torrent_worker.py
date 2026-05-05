@@ -29,7 +29,6 @@ def download_torrent(client, loop, source, chat_id=None):
         handle = ses.add_torrent(params)
 
     filename = handle.status().name or "torrent_download"
-    # Usar timestamp para evitar colisiones en el panel
     task_key = f"dl_{int(time.time())}_{filename}"
 
     CONFIG.status_data.value["active"][task_key] = {

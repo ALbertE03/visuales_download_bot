@@ -102,55 +102,95 @@ async def watch_handler(request: web.Request):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{file_info.file_name}</title>
+    <title>{file_info.file_name} - Visuales UCLV</title>
+    <!-- Plyr CSS para estilos profesionales -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {{
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-color: #0f1115;
+            --card-bg: #1a1d24;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }}
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
-            background: #0f0f0f;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 2rem 1rem;
+        }}
+        .header {{
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }}
+        .header-title {{
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }}
         .container {{
             width: 100%;
-            max-width: 900px;
-            background: #1a1a1a;
+            max-width: 1000px;
+            background: var(--card-bg);
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
         }}
         .video-wrapper {{
             position: relative;
             background: #000;
-        }}
-        video {{
             width: 100%;
-            height: auto;
-            display: block;
+            aspect-ratio: 16/9;
         }}
-        .info {{
-            padding: 20px;
-            color: #fff;
+        .plyr {{
+            height: 100%;
+            --plyr-color-main: var(--primary);
+        }}
+        .info-section {{
+            padding: 1.5rem 2rem;
         }}
         .filename {{
-            font-size: 1.2em;
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-bottom: 8px;
-            word-break: break-all;
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+            line-height: 1.4;
         }}
-        .filesize {{
-            color: #aaa;
-            font-size: 0.9em;
-            margin-bottom: 16px;
+        .meta-info {{
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
         }}
-        .buttons {{
+        .meta-tag {{
+            background: rgba(255,255,255,0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }}
+        .actions {{
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }}
         .btn {{
             display: inline-flex;
@@ -159,58 +199,186 @@ async def watch_handler(request: web.Request):
             padding: 10px 20px;
             border-radius: 8px;
             text-decoration: none;
-            font-size: 0.95em;
+            font-size: 0.95rem;
             font-weight: 500;
-            transition: all 0.2s;
-            border: none;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
             cursor: pointer;
         }}
         .btn-primary {{
-            background: #3b82f6;
+            background: var(--primary);
             color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
         }}
-        .btn-primary:hover {{ background: #2563eb; }}
+        .btn-primary:hover {{ background: var(--primary-hover); transform: translateY(-1px); }}
         .btn-secondary {{
-            background: #333;
+            background: rgba(255,255,255,0.05);
             color: white;
+            border: 1px solid rgba(255,255,255,0.1);
         }}
-        .btn-secondary:hover {{ background: #444; }}
-        .btn svg {{
-            width: 18px;
-            height: 18px;
+        .btn-secondary:hover {{ background: rgba(255,255,255,0.1); }}
+        .btn svg {{ width: 18px; height: 18px; }}
+        
+        .controls-xtra {{
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }}
+        
+        .custom-file-upload {{
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.08);
+            font-size: 0.85rem;
+            transition: 0.2s;
+            border: 1px dashed rgba(255,255,255,0.2);
+            color: var(--text-muted);
+        }}
+        .custom-file-upload:hover {{
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+        }}
+        input[type="file"] {{ display: none; }}
+        
+        #audio-track-selector {{
+            display: none;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
         }}
     </style>
 </head>
 <body>
+    <div class="header">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#3b82f6" />
+                    <stop offset="100%" stop-color="#8b5cf6" />
+                </linearGradient>
+            </defs>
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span class="header-title">Stream</span>
+    </div>
+
     <div class="container">
         <div class="video-wrapper">
-            <video controls autoplay playsinline>
+            <video id="player" controls crossorigin playsinline>
                 <source src="{stream_url}" type="{file_info.mime_type or 'video/mp4'}">
-                Tu navegador no soporta el formato de video.
             </video>
         </div>
-        <div class="info">
+        
+        <div class="info-section">
             <div class="filename">{file_info.file_name}</div>
-            <div class="filesize">{file_info.file_size / 1024 / 1024:.1f} MB</div>
-            <div class="buttons">
+            <div class="meta-info">
+                <span class="meta-tag">{file_info.file_size / 1024 / 1024:.1f} MB</span>
+                <span>•</span>
+                <span>Streaming</span>
+            </div>
+            
+            <div class="controls-xtra">
+                <label class="custom-file-upload">
+                    <input type="file" id="sub-upload" accept=".vtt,.srt" />
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Añadir Subtítulo (.srt/.vtt)
+                </label>
+                <select id="audio-track-selector"></select>
+            </div>
+
+            <div class="actions">
                 <a href="{stream_url}&s=1" class="btn btn-primary" download>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Descargar
                 </a>
                 <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('{stream_url}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     Copiar Link
                 </button>
+                <a href="vlc://{stream_url}" class="btn btn-secondary" title="Abrir en VLC Media Player (Mejor para Dual Audio y formato MKV)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    Abrir en VLC
+                </a>
             </div>
         </div>
     </div>
+
+    <!-- Plyr JS -->
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {{
+            const video = document.getElementById('player');
+            const player = new Plyr(video, {{
+                captions: {{ active: true, update: true, language: 'auto' }},
+                i18n: {{
+                    quality: 'Calidad',
+                    speed: 'Velocidad',
+                    captions: 'Subtítulos',
+                    disabled: 'Desactivado',
+                    enabled: 'Activado',
+                }}
+            }});
+
+            // Manejo de subtítulos locales
+            document.getElementById('sub-upload').addEventListener('change', function(e) {{
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const url = URL.createObjectURL(file);
+                const track = document.createElement('track');
+                track.kind = 'captions';
+                track.label = file.name;
+                track.srclang = 'es';
+                track.src = url;
+                track.default = true;
+
+                Array.from(video.querySelectorAll('track')).forEach(t => t.remove());
+                video.appendChild(track);
+                
+                alert(`Subtítulo "${{file.name}}" cargado correctamente. Puedes activarlo en el menú (CC).`);
+                
+                setTimeout(() => {{
+                    track.mode = 'showing';
+                }}, 500);
+            }});
+
+            // Soporte de Múltiples Pistas de Audio (Dual Audio) en la web
+            video.addEventListener('loadedmetadata', () => {{
+                const audioTracks = video.audioTracks;
+                const selector = document.getElementById('audio-track-selector');
+                if (audioTracks && audioTracks.length > 1) {{
+                    selector.style.display = 'inline-flex';
+                    selector.innerHTML = '';
+                    for (let i = 0; i < audioTracks.length; i++) {{
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.text = audioTracks[i].label || audioTracks[i].language || `Audio Track ${{i + 1}}`;
+                        selector.appendChild(option);
+                        
+                        if (audioTracks[i].enabled) {{
+                            option.selected = true;
+                        }}
+                    }}
+                    
+                    selector.addEventListener('change', (e) => {{
+                        for (let i = 0; i < audioTracks.length; i++) {{
+                            audioTracks[i].enabled = (i == parseInt(e.target.value));
+                        }}
+                    }});
+                }}
+            }});
+        }});
+    </script>
 </body>
 </html>"""
 

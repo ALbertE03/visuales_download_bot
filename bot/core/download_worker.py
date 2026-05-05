@@ -19,7 +19,6 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
             
             url, filename, retries = item
             file_path = os.path.join(CONFIG.DOWNLOAD_DIR.value, filename)
-            # Usar un timestamp para que la llave sea única y no se sobrescriba
             task_key = f"dl_{int(time.time())}_{filename}"
             
             CONFIG.status_data.value["active"][task_key] = {
