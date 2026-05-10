@@ -1,3 +1,4 @@
 ffmpeg
 zip
 python3-libtorrent
+nodejs
