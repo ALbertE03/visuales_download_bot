@@ -197,7 +197,7 @@ class CONSTANTS:
             "Sec-Fetch-Mode": "navigate",
         },
         "extractor_args": {"youtube": {"player_client": ["android", "web"]}},
-        "js_runtimes": ["node"],
+        "js_runtimes": {"node": {}},
         "remote_components": "ejs:github",
     }
 
