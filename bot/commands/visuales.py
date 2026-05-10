@@ -6,6 +6,7 @@ from pyrogram.types import Message
 from bot.config import CONFIG
 from bot.utils import load_processed, load_explorer_cache, save_explorer_cache
 from bot.constants import CONSTANTS
+import asyncio
 
 async def fetch_url(url, timeout=120):
     """Realiza una petición GET de forma no bloqueante."""

@@ -15,7 +15,7 @@ async def stream_handler(client: Client, message: Message):
     if not message.reply_to_message and not _has_media(message):
         await message.reply(
             "<blockquote><b>Uso:</b> Envía un archivo y responde con "
-            "<code>/stream</code>, o reenvía un archivo al bot.</blockquote>",
+            "<code>/stream</code>.</blockquote>",
         )
         return
 

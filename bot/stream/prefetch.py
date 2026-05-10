@@ -1,8 +1,6 @@
 import asyncio
 import logging
-import math
 from typing import Set
-
 from pyrogram import Client, raw
 from bot.stream.config import StreamConfig
 from bot.stream.cache import global_chunk_cache, global_coordinator
@@ -25,7 +23,7 @@ class PrefetchManager:
             session = await client.get_session(dc_id, is_media=True)
             current_offset = start_offset
             
-            for current_part in range(start_part, start_part + part_count):
+            for _ in range(start_part, start_part + part_count):
                 if current_offset >= file_size:
                     break
                     

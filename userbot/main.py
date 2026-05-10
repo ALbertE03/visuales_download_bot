@@ -4,7 +4,6 @@ from pyrogram.handlers import MessageHandler
 
 from userbot.commands.audio import totext_cmd, auto_transcribe_private
 from userbot.commands.cine_filter import cine_filter_handler
-from bot.commands.stream_cmd import stream_handler
 from bot.log import logger
 
 API_ID = st.secrets.get("API_ID")
@@ -28,36 +27,30 @@ else:
         "my_userbot", api_id=int(API_ID), api_hash=API_HASH, workdir="userbot"
     )
 
-async def userbot_stream_cmd(client: Client, message):
-    logger.info(f"Comando /stream activado por userbot en el chat {message.chat.id}")
-    await stream_handler(client, message)
 
 userbot_app.add_handler(
     MessageHandler(totext_cmd, filters.command("totext", prefixes="/") & filters.me)
 )
 
-userbot_app.add_handler(
-    MessageHandler(userbot_stream_cmd, filters.command("stream", prefixes="/") & filters.me)
-)
 
 userbot_app.add_handler(
     MessageHandler(
         auto_transcribe_private,
         filters.private
         & ~filters.me
-        & ~filters.chat("MusicsHuntersbot")
+        & ~filters.user(["MusicsHuntersbot", "silverluffy2", "VoiceShazamBot"])
         & (
             filters.voice
             | filters.video_note
             | filters.audio
             | (filters.document & filters.regex(r"audio/.*"))
-        )
+        ),
     )
 )
 
 userbot_app.add_handler(
     MessageHandler(
         cine_filter_handler,
-        filters.chat("chat1080p") & filters.regex(r"(?i)^#cine") & ~filters.me
+        filters.chat("chat1080p") & filters.regex(r"(?i)^#cine") & ~filters.me,
     )
 )

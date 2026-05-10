@@ -1,8 +1,6 @@
-import sys
 import time
 import platform
 import psutil
-import pyrogram
 from pyrogram import Client
 from pyrogram.types import Message
 from bot.utils import format_size, format_time
