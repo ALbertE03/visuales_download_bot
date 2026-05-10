@@ -198,7 +198,7 @@ class CONSTANTS:
         },
         "extractor_args": {"youtube": {"player_client": ["android", "web"]}},
         "js_runtimes": {"node": {}},
-        "remote_components": "ejs:github",
+        "remote_components": ["ejs:github"],
     }
 
     # Dominios soportados por yt-dlp
