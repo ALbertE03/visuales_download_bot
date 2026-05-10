@@ -62,6 +62,10 @@ async def stream_handler(client: Client, message: Message):
 
         buttons = [
             [InlineKeyboardButton("📺 Ver en navegador", url=watch_link)],
+            [
+                InlineKeyboardButton("🧡 VLC", url=f"vlc://{stream_link}"),
+                InlineKeyboardButton("💙 MX Player", url=f"intent:{stream_link}#Intent;package=com.mxtech.videoplayer.ad;S.title={file_info.file_name};end"),
+            ]
         ]
 
         await status_msg.delete()

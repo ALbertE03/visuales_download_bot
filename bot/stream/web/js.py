@@ -6,6 +6,12 @@ def scripts()->str:
                 const video = document.getElementById('player');
                 const player = new Plyr(video, {{
                     captions: {{ active: true, update: true, language: 'auto' }},
+                    fullscreen: {{
+                        enabled: true,
+                        fallback: true,
+                        iosNative: true,
+                        container: null
+                    }},
                     i18n: {{
                         quality: 'Calidad',
                         speed: 'Velocidad',
