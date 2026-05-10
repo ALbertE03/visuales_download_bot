@@ -6,6 +6,7 @@ from typing import Tuple
 from bot.providers.base import BaseProvider
 from bot.config import CONFIG
 from bot.constants import CONSTANTS
+from bot.log import logger
 
 
 class YoutubeDLProvider(BaseProvider):

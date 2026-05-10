@@ -58,6 +58,20 @@ def create_html(file_info:FileInfo,stream_url:str)->str:
                         </a>
                     </div>
                 </div>
+
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--panel-border);">
+                    <div style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">Reproducir en apps externas</div>
+                    <div class="tools">
+                        <a href="vlc://{stream_url}" class="btn btn-glass" style="color: #ff9500; border-color: rgba(255, 149, 0, 0.2);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#ff9500" stroke-width="2"><path d="M12 2L4 18h16L12 2z"/><path d="M12 12l4 6H8l4-6z"/></svg>
+                            VLC Player
+                        </a>
+                        <a href="intent:{stream_url}#Intent;package=com.mxtech.videoplayer.ad;S.title={file_info.file_name};end" class="btn btn-glass" style="color: #007aff; border-color: rgba(0, 122, 255, 0.2);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 7v10l7-5-7-5z"/></svg>
+                            MX Player
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
