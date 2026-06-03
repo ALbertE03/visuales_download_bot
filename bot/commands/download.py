@@ -14,13 +14,17 @@ async def download_handler(client: Client, message: Message) -> None:
 
     url = message.text.split(None, 1)[1].strip()
 
-    filename = "downloaded_file"
-    filename_match = re.search(r"filename=([^&]+)", url)
-    if filename_match:
-        filename = unquote(filename_match.group(1))
+    yt_domains = ["youtube.com", "youtu.be"]
+    if any(d in url.lower() for d in yt_domains):
+        filename = "Video de YouTube"
     else:
-        url_path = url.split("?")[0]
-        filename = unquote(url_path.split("/")[-1]) or "downloaded_file"
+        filename = "downloaded_file"
+        filename_match = re.search(r"filename=([^&]+)", url)
+        if filename_match:
+            filename = unquote(filename_match.group(1))
+        else:
+            url_path = url.split("?")[0]
+            filename = unquote(url_path.split("/")[-1]) or "downloaded_file"
 
     CONFIG.download_queue.value.put((url, filename, 0))
     CONFIG.status_data.value["total_in_queue"] += 1

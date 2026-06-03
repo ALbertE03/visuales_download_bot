@@ -19,7 +19,7 @@ from userbot.main import userbot_app
 from bot.stream.server import start_stream_server
 from bot.stream.tunnel import start_cloudflare_tunnel
 from bot.stream.config import StreamConfig
-
+from bot.commands.pixel_art import pixel_art
 
 async def setup_bot_commands(app: Client):
     """
@@ -38,6 +38,7 @@ async def setup_bot_commands(app: Client):
         types.BotCommand(
             "server_status", "Ver estado del servidor y recursos disponibles"
         ),
+           types.BotCommand("pixel", " Para obtener una version pixelart de su img"),
         types.BotCommand("stream", "Generar enlace de streaming para un archivo"),
         types.BotCommand("cancel", "Cancelar una o todas las tareas activas y en cola"),
     ]
@@ -75,7 +76,7 @@ def setup_bots():
     auth_filter = filters.create(lambda _, __, m: is_allowed(m.from_user.id) if m.from_user else False)
 
     app.add_handler(MessageHandler(start_handler, filters.command("start") & auth_filter))
-
+    app.add_handler(MessageHandler(pixel_art,filters.command("pixel")& auth_filter))
     app.add_handler(MessageHandler(status_handler, filters.command("status") & auth_filter))
     app.add_handler(MessageHandler(cancel_handler, filters.command("cancel") & auth_filter))
     app.add_handler(CallbackQueryHandler(cancel_callback_handler, filters.regex(r"^cancel_") & auth_filter))
@@ -113,6 +114,7 @@ def setup_bots():
                     "server_status",
                     "stream",
                     "cancel",
+                    "pixel"
                 ]
             ) & auth_filter,
         ),

@@ -52,6 +52,7 @@ class CONSTANTS:
         "<b>-- Monitor del Sistema --</b>\n"
         "<blockquote>"
         "<code>/status</code> - Abre el Panel de Control en tiempo real.\n"
+        "<code>/pixel</code> - Para obtener una version pixelart de su imagen"
         "<code>/server_status</code> - Estado de hardware y recursos.\n"
         "<code>/cancel</code> - Administra y detiene tareas activas."
         "</blockquote>\n"

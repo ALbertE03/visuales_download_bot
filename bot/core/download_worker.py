@@ -1,5 +1,6 @@
 import time
 import os
+import streamlit as st
 import requests
 import queue
 import asyncio
@@ -8,8 +9,50 @@ from bot.core.upload_worker import upload_file
 from bot.constants import CONSTANTS
 from pyrogram import Client
 from bot.manager import manager
+import json
+from http.cookiejar import MozillaCookieJar
+import tempfile
 
 
+def parse_cookies_to_dict(cookies_str):
+    """Convierte cookies en formato Netscape o JSON a diccionario"""
+    cookies_dict = {}
+    
+    # Si es string vacío o None
+    if not cookies_str:
+        return cookies_dict
+    
+    # Intentar parsear como JSON primero
+    try:
+        cookies_data = json.loads(cookies_str)
+        if isinstance(cookies_data, dict):
+            return cookies_data
+        elif isinstance(cookies_data, list):
+            for cookie in cookies_data:
+                if 'name' in cookie and 'value' in cookie:
+                    cookies_dict[cookie['name']] = cookie['value']
+            return cookies_dict
+    except:
+        pass
+    
+    # Si no es JSON, intentar como formato Netscape
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+            f.write(cookies_str)
+            temp_file = f.name
+        
+        cookie_jar = MozillaCookieJar(temp_file)
+        cookie_jar.load(ignore_expires=True, ignore_discard=True)
+        
+        for cookie in cookie_jar:
+            cookies_dict[cookie.name] = cookie.value
+        
+        import os
+        os.unlink(temp_file)
+    except:
+        pass
+    
+    return cookies_dict
 def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> None:
     """Procesador de la cola de descargas."""
     while True:
@@ -43,10 +86,14 @@ def download_file_worker(client: Client, loop: asyncio.AbstractEventLoop) -> Non
                     )
                     file_path, filename = future.result()
                 else:
+
+                    cookies_content = st.secrets.get("YTDLP_COOKIES")
+                    cookies_dict = parse_cookies_to_dict(cookies_content)
+
                     headers = {
                         "User-Agent": CONSTANTS.DEFAULT_USER_AGENT
                     }
-                    response = requests.get(url, stream=True, timeout=CONSTANTS.DOWNLOAD_TIMEOUT, headers=headers)
+                    response = requests.get(url, stream=True, timeout=CONSTANTS.DOWNLOAD_TIMEOUT, headers=headers,cookies=cookies_dict)
                     response.raise_for_status()
                     
                     total_size = int(response.headers.get('content-length', 0))
