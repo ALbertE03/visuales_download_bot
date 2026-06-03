@@ -1,8 +1,6 @@
 from PIL import Image 
 from pyrogram import Client
 from pyrogram.types import Message
-
-from pyrogram import Client, Message
 from PIL import Image
 import io
 
