@@ -3,7 +3,7 @@ from pyrogram import Client
 from pyrogram.types import Message
 from PIL import Image
 import io
-
+import os
 
 async def pixel_art(client: Client, message: Message, f_reduction: int = 10):
     """
